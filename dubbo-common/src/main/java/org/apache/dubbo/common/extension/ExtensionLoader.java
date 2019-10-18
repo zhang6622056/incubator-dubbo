@@ -47,6 +47,7 @@ import java.util.regex.Pattern;
 
 /**
  * Load dubbo extensions
+ * dubbo spi主要实现类，一个接口对应一个ExtensionLoader实现类实例
  * <ul>
  * <li>auto inject dependency extension </li>
  * <li>auto wrap extension in wrapper </li>
@@ -61,17 +62,20 @@ import java.util.regex.Pattern;
 public class ExtensionLoader<T> {
 
     private static final Logger logger = LoggerFactory.getLogger(ExtensionLoader.class);
-
+    //- 同样的spi扩展目录
     private static final String SERVICES_DIRECTORY = "META-INF/services/";
-
+    //- dubbo spi接口目录
     private static final String DUBBO_DIRECTORY = "META-INF/dubbo/";
 
     private static final String DUBBO_INTERNAL_DIRECTORY = DUBBO_DIRECTORY + "internal/";
 
     private static final Pattern NAME_SEPARATOR = Pattern.compile("\\s*[,]+\\s*");
 
-    private static final ConcurrentMap<Class<?>, ExtensionLoader<?>> EXTENSION_LOADERS = new ConcurrentHashMap<Class<?>, ExtensionLoader<?>>();
 
+
+    //- 缓存：接口对应ExtensionLoader关系，
+    private static final ConcurrentMap<Class<?>, ExtensionLoader<?>> EXTENSION_LOADERS = new ConcurrentHashMap<Class<?>, ExtensionLoader<?>>();
+    //- <class,扩展类实例>
     private static final ConcurrentMap<Class<?>, Object> EXTENSION_INSTANCES = new ConcurrentHashMap<Class<?>, Object>();
 
     // ==============================
@@ -85,6 +89,7 @@ public class ExtensionLoader<T> {
     private final Holder<Map<String, Class<?>>> cachedClasses = new Holder<Map<String, Class<?>>>();
 
     private final Map<String, Object> cachedActivates = new ConcurrentHashMap<String, Object>();
+    //- 扩展实现类缓存
     private final ConcurrentMap<String, Holder<Object>> cachedInstances = new ConcurrentHashMap<String, Holder<Object>>();
     private final Holder<Object> cachedAdaptiveInstance = new Holder<Object>();
     private volatile Class<?> cachedAdaptiveClass = null;
@@ -95,6 +100,14 @@ public class ExtensionLoader<T> {
 
     private Map<String, IllegalStateException> exceptions = new ConcurrentHashMap<String, IllegalStateException>();
 
+
+
+
+
+
+
+
+
     private ExtensionLoader(Class<?> type) {
         this.type = type;
         objectFactory = (type == ExtensionFactory.class ? null : ExtensionLoader.getExtensionLoader(ExtensionFactory.class).getAdaptiveExtension());
@@ -104,6 +117,11 @@ public class ExtensionLoader<T> {
         return type.isAnnotationPresent(SPI.class);
     }
 
+
+
+
+    //- 每一个接口对应一个ExtensionLoader
+    //- 获取接口对应的ExtensionLoader,如果获取不到就new一个放到缓存
     @SuppressWarnings("unchecked")
     public static <T> ExtensionLoader<T> getExtensionLoader(Class<T> type) {
         if (type == null) {
@@ -323,6 +341,17 @@ public class ExtensionLoader<T> {
      * Find the extension with the given name. If the specified name is not found, then {@link IllegalStateException}
      * will be thrown.
      */
+
+
+
+    /**
+     *
+     * 获取扩展接口的具体实现
+     * @author Nero
+     * @date 2019-10-18
+     * *@param: name 扩展点的具体实现类 name=com.xxx.xxx.xxx
+     * @return T
+     */
     @SuppressWarnings("unchecked")
     public T getExtension(String name) {
         if (StringUtils.isEmpty(name)) {
@@ -360,6 +389,7 @@ public class ExtensionLoader<T> {
         return getExtension(cachedDefaultName);
     }
 
+    //- 获取缓存的Class对象，protocol的地方有调用
     public boolean hasExtension(String name) {
         if (StringUtils.isEmpty(name)) {
             throw new IllegalArgumentException("Extension name == null");
@@ -599,6 +629,16 @@ public class ExtensionLoader<T> {
         return classes;
     }
 
+
+
+    /***
+     *
+     * 将
+     * @author Nero
+     * @date 2019-10-18
+     * *@param:
+     * @return java.util.Map<java.lang.String,java.lang.Class<?>>
+     */
     // synchronized in getExtensionClasses
     private Map<String, Class<?>> loadExtensionClasses() {
         final SPI defaultAnnotation = type.getAnnotation(SPI.class);
@@ -626,6 +666,18 @@ public class ExtensionLoader<T> {
         return extensionClasses;
     }
 
+
+
+    /**
+     *
+     * load指定目录中的文件
+     * @author Nero
+     * @date 2019-10-18
+     * *@param: extensionClasses 要缓存的位置
+     *  @param: dir 文件的指定目录， 比如META-INFO/DUBBO/
+     *  @param: type  接口的全限定名，也就是文件名
+     * @return void
+     */
     private void loadDirectory(Map<String, Class<?>> extensionClasses, String dir, String type) {
         String fileName = dir + type;
         try {
@@ -648,6 +700,18 @@ public class ExtensionLoader<T> {
         }
     }
 
+
+
+    /***
+     *
+     * 功能描述 
+     * @author Nero
+     * @date 2019-10-18
+     * @param: extensionClasses 实现类缓存
+     * @param: classLoader 文件的classloader
+     * @param: resourceURL load文件的绝对路径
+     * @return void
+     */
     private void loadResource(Map<String, Class<?>> extensionClasses, ClassLoader classLoader, java.net.URL resourceURL) {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(resourceURL.openStream(), "utf-8"));
@@ -667,6 +731,7 @@ public class ExtensionLoader<T> {
                                 name = line.substring(0, i).trim();
                                 line = line.substring(i + 1).trim();
                             }
+                            //- line，实现类的全限定名
                             if (line.length() > 0) {
                                 loadClass(extensionClasses, resourceURL, Class.forName(line, true, classLoader), name);
                             }
@@ -685,6 +750,19 @@ public class ExtensionLoader<T> {
         }
     }
 
+
+    /***
+     *
+     * - 加载类对象到缓存
+     * @author Nero
+     * @date 2019-10-18
+     * *@param: extensionClasses 缓存对象
+     *  @param: resourceURL  接口spi文件file:// url
+     *  @param: clazz 类的class对象，实现类
+     *@param: name
+     * @return void
+     */
+    //
     private void loadClass(Map<String, Class<?>> extensionClasses, java.net.URL resourceURL, Class<?> clazz, String name) throws NoSuchMethodException {
         if (!type.isAssignableFrom(clazz)) {
             throw new IllegalStateException("Error occured when loading extension class (interface: " +

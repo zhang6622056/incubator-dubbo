@@ -262,9 +262,10 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     }
 
     public void checkAndUpdateSubConfigs() {
-        // Use default configs defined explicitly on global configs
+        //按照优先级设置配置属性 provider > module > config
         completeCompoundConfigs();
-        // Config Center should always being started first.
+
+
         startConfigCenter();
         checkDefault();
         checkApplication();
@@ -325,9 +326,13 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         checkMock(interfaceClass);
     }
 
+
+    //对外暴露服务
     public synchronized void export() {
+        // 检查配置，按照优先级，默认选项配置
         checkAndUpdateSubConfigs();
 
+        //- 如果provider设置为不暴露服务，则直接return
         if (provider != null) {
             if (export == null) {
                 export = provider.getExport();
@@ -340,6 +345,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             return;
         }
 
+        //- 是否延迟暴露
         if (delay != null && delay > 0) {
             delayExportExecutor.schedule(this::doExport, delay, TimeUnit.MILLISECONDS);
         } else {
@@ -347,6 +353,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         }
     }
 
+    //- 执行暴露服务处理
     protected synchronized void doExport() {
         if (unexported) {
             throw new IllegalStateException("The service " + interfaceClass.getName() + " has already unexported!");
@@ -359,10 +366,15 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         if (StringUtils.isEmpty(path)) {
             path = interfaceName;
         }
+
+        //- 将provider转换为ProviderModel结构，用来缓存
         ProviderModel providerModel = new ProviderModel(getUniqueServiceName(), ref, interfaceClass);
         ApplicationModel.initProviderModel(getUniqueServiceName(), providerModel);
         doExportUrls();
     }
+
+
+
 
     private void checkRef() {
         // reference should not be null, and is the implementation of the given interface
@@ -398,17 +410,32 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void doExportUrls() {
+
+        //-获取注册中心url，目前只支持一个，但是dubbo预留了list结构
         List<URL> registryURLs = loadRegistries(true);
         for (ProtocolConfig protocolConfig : protocols) {
             doExportUrlsFor1Protocol(protocolConfig, registryURLs);
         }
     }
 
+
+    /**
+     *
+     * 统一url暴露服务
+     * @author Nero
+     * @date 2019-10-16
+     * *@param: protocolConfig 协议配置
+     *  @param: registryURLs  统一暴露url
+     * @return void
+     */
     private void doExportUrlsFor1Protocol(ProtocolConfig protocolConfig, List<URL> registryURLs) {
+        //- 默认dubbo 协议
         String name = protocolConfig.getName();
         if (StringUtils.isEmpty(name)) {
             name = Constants.DUBBO;
         }
+
+
 
         Map<String, String> map = new HashMap<String, String>();
         map.put(Constants.SIDE_KEY, Constants.PROVIDER_SIDE);
@@ -418,6 +445,9 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         appendParameters(map, provider, Constants.DEFAULT_KEY);
         appendParameters(map, protocolConfig);
         appendParameters(map, this);
+
+
+        //methods上的配置
         if (CollectionUtils.isNotEmpty(methods)) {
             for (MethodConfig method : methods) {
                 appendParameters(map, method, method.getName());
@@ -474,6 +504,11 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             } // end of methods for
         }
 
+
+
+
+
+
         if (ProtocolUtils.isGeneric(generic)) {
             map.put(Constants.GENERIC_KEY, generic);
             map.put(Constants.METHODS_KEY, Constants.ANY_VALUE);
@@ -491,6 +526,9 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                 map.put(Constants.METHODS_KEY, StringUtils.join(new HashSet<String>(Arrays.asList(methods)), ","));
             }
         }
+
+
+
         if (!ConfigUtils.isEmpty(token)) {
             if (ConfigUtils.isDefault(token)) {
                 map.put(Constants.TOKEN_KEY, UUID.randomUUID().toString());
@@ -504,10 +542,14 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             contextPath = provider.getContextpath();
         }
 
+
+        //- 生成最终暴露的url
         String host = this.findConfigedHosts(protocolConfig, registryURLs, map);
         Integer port = this.findConfigedPorts(protocolConfig, name, map);
         URL url = new URL(name, host, port, (StringUtils.isEmpty(contextPath) ? "" : contextPath + "/") + path, map);
 
+
+        //-TODO-ZL 扩展点加载
         if (ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
                 .hasExtension(url.getProtocol())) {
             url = ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
@@ -547,6 +589,9 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                         Invoker<?> invoker = proxyFactory.getInvoker(ref, (Class) interfaceClass, registryURL.addParameterAndEncoded(Constants.EXPORT_KEY, url.toFullString()));
                         DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, this);
 
+
+
+                        //- 最终向外暴露
                         Exporter<?> exporter = protocol.export(wrapperInvoker);
                         exporters.add(exporter);
                     }
@@ -740,6 +785,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         return port;
     }
 
+    //- 按照优先级设置属性  provider > module > application
     private void completeCompoundConfigs() {
         if (provider != null) {
             if (application == null) {

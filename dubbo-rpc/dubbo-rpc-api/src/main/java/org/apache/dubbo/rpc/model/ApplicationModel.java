@@ -69,6 +69,7 @@ public class ApplicationModel {
         }
     }
 
+    //- 缓存providerModel结构
     public static void initProviderModel(String serviceName, ProviderModel providerModel) {
         if (providedServices.putIfAbsent(serviceName, providerModel) != null) {
             LOGGER.warn("Already register the same:" + serviceName);

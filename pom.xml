@@ -147,6 +147,8 @@
         <module>dubbo-distribution</module>
         <module>dubbo-metadata-report</module>
         <module>dubbo-configcenter</module>
+        <module>nero</module>
+        <module>dubbo-nero</module>
     </modules>
 
     <dependencyManagement>

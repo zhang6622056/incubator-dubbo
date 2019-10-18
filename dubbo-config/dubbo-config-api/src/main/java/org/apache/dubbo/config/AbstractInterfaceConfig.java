@@ -143,6 +143,8 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
     protected String ondisconnect;
     protected MetadataReportConfig metadataReportConfig;
 
+
+
     protected ConfigCenterConfig configCenter;
 
     // callback limits

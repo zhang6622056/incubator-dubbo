@@ -46,6 +46,16 @@ public interface Protocol {
      * @return exporter reference for exported service, useful for unexport the service later
      * @throws RpcException thrown when error occurs during export the service, for example: port is occupied
      */
+
+
+    /***
+     *
+     * 对外暴露服务
+     * @author Nero
+     * @date 2019-10-16
+     * *@param: invoker
+     * @return org.apache.dubbo.rpc.Exporter<T>
+     */
     @Adaptive
     <T> Exporter<T> export(Invoker<T> invoker) throws RpcException;
 
