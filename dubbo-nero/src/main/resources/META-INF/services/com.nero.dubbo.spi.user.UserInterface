@@ -1,1 +1,6 @@
 user=com.nero.dubbo.spi.user.impl.UserImpl
+pass=com.nero.dubbo.spi.user.impl.UserInjectInterfaceServiceImpl
+
+#aop类的实现，可以不用key-value，包裹顺序则是从下到上，依次包裹，UserWrapper -> UserNoWrap -> trueImpl
+com.nero.dubbo.spi.user.impl.UserWrapper
+com.nero.dubbo.spi.user.impl.UserNoWrap

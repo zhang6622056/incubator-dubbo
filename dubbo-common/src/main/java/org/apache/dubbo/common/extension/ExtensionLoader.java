@@ -91,8 +91,16 @@ public class ExtensionLoader<T> {
     private final Map<String, Object> cachedActivates = new ConcurrentHashMap<String, Object>();
     //- 扩展实现类缓存
     private final ConcurrentMap<String, Holder<Object>> cachedInstances = new ConcurrentHashMap<String, Holder<Object>>();
+
+
+    //- Adaptive对象持有者缓存
     private final Holder<Object> cachedAdaptiveInstance = new Holder<Object>();
+
+    //- Adaptive对象缓存class实例
     private volatile Class<?> cachedAdaptiveClass = null;
+
+
+
     private String cachedDefaultName;
     private volatile Throwable createAdaptiveInstanceError;
 
@@ -493,6 +501,16 @@ public class ExtensionLoader<T> {
         }
     }
 
+
+
+    /***
+     *
+     * 获取自适应的ExtensionLoader.在注入的时候用到
+     * @author Nero
+     * @date 2019-10-21
+     * *@param:
+     * @return T
+     */
     @SuppressWarnings("unchecked")
     public T getAdaptiveExtension() {
         Object instance = cachedAdaptiveInstance.get();
@@ -569,6 +587,17 @@ public class ExtensionLoader<T> {
         }
     }
 
+
+
+
+    /***
+     *
+     * 注入类实例
+     * @author Nero
+     * @date 2019-10-22
+     * *@param: instance   被注入的Adaptive实例
+     * @return T
+     */
     private T injectExtension(T instance) {
         try {
             if (objectFactory != null) {
@@ -605,6 +634,10 @@ public class ExtensionLoader<T> {
         return instance;
     }
 
+
+
+
+
     private Class<?> getExtensionClass(String name) {
         if (type == null) {
             throw new IllegalArgumentException("Extension type == null");
@@ -614,6 +647,9 @@ public class ExtensionLoader<T> {
         }
         return getExtensionClasses().get(name);
     }
+
+
+
 
     private Map<String, Class<?>> getExtensionClasses() {
         Map<String, Class<?>> classes = cachedClasses.get();
@@ -819,6 +855,9 @@ public class ExtensionLoader<T> {
         }
     }
 
+
+
+
     private boolean isWrapperClass(Class<?> clazz) {
         try {
             clazz.getConstructor(type);
@@ -827,6 +866,10 @@ public class ExtensionLoader<T> {
             return false;
         }
     }
+
+
+
+
 
     @SuppressWarnings("deprecation")
     private String findAnnotationName(Class<?> clazz) {
@@ -841,6 +884,16 @@ public class ExtensionLoader<T> {
         return extension.value();
     }
 
+
+
+    /***
+     *
+     * 创建自适应扩展
+     * @author Nero
+     * @date 2019-10-21
+     * *@param:
+     * @return T
+     */
     @SuppressWarnings("unchecked")
     private T createAdaptiveExtension() {
         try {
@@ -850,6 +903,9 @@ public class ExtensionLoader<T> {
         }
     }
 
+
+
+    //- 获取Adaptive 代理类class对象
     private Class<?> getAdaptiveExtensionClass() {
         getExtensionClasses();
         if (cachedAdaptiveClass != null) {
@@ -858,6 +914,15 @@ public class ExtensionLoader<T> {
         return cachedAdaptiveClass = createAdaptiveExtensionClass();
     }
 
+
+    /***
+     *
+     * 创建自适应实现类
+     * @author Nero
+     * @date 2019-10-22
+     * *@param:
+     * @return java.lang.Class<?>
+     */
     private Class<?> createAdaptiveExtensionClass() {
         String code = createAdaptiveExtensionClassCode();
         ClassLoader classLoader = findClassLoader();
@@ -865,6 +930,19 @@ public class ExtensionLoader<T> {
         return compiler.compile(code, classLoader);
     }
 
+
+
+
+
+
+    /***
+     *
+     * 生成自适应实现类code，实现类规则为接口名$Adaptive 可以用arthas jad 尝试反编译
+     * @author Nero
+     * @date 2019-10-22
+     * *@param:
+     * @return java.lang.String
+     */
     private String createAdaptiveExtensionClassCode() {
         StringBuilder codeBuilder = new StringBuilder();
         Method[] methods = type.getMethods();
