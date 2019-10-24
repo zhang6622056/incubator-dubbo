@@ -287,7 +287,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
      * @return
      */
     protected List<URL> loadRegistries(boolean provider) {
-        // check && override if necessary
+        //-遍历配置中的注册中心，将注册中心，转换url化存储
         List<URL> registryList = new ArrayList<URL>();
         if (CollectionUtils.isNotEmpty(registries)) {
             for (RegistryConfig config : registries) {

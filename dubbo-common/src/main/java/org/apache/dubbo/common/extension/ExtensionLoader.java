@@ -75,7 +75,7 @@ public class ExtensionLoader<T> {
 
     //- 缓存：接口对应ExtensionLoader关系，
     private static final ConcurrentMap<Class<?>, ExtensionLoader<?>> EXTENSION_LOADERS = new ConcurrentHashMap<Class<?>, ExtensionLoader<?>>();
-    //- <class,扩展类实例>
+    //- <class,扩展类实例> 缓存
     private static final ConcurrentMap<Class<?>, Object> EXTENSION_INSTANCES = new ConcurrentHashMap<Class<?>, Object>();
 
     // ==============================
@@ -86,16 +86,22 @@ public class ExtensionLoader<T> {
 
     private final ConcurrentMap<Class<?>, String> cachedNames = new ConcurrentHashMap<Class<?>, String>();
 
+
+
+    //- <key,Class> 对应的缓存holder对象
     private final Holder<Map<String, Class<?>>> cachedClasses = new Holder<Map<String, Class<?>>>();
 
     private final Map<String, Object> cachedActivates = new ConcurrentHashMap<String, Object>();
-    //- 扩展实现类缓存
+
+
+
+
+    //- 扩展实现类缓存 <key,instance holder>
     private final ConcurrentMap<String, Holder<Object>> cachedInstances = new ConcurrentHashMap<String, Holder<Object>>();
 
 
     //- Adaptive对象持有者缓存
     private final Holder<Object> cachedAdaptiveInstance = new Holder<Object>();
-
     //- Adaptive对象缓存class实例
     private volatile Class<?> cachedAdaptiveClass = null;
 
@@ -104,6 +110,7 @@ public class ExtensionLoader<T> {
     private String cachedDefaultName;
     private volatile Throwable createAdaptiveInstanceError;
 
+    //- aop wrapper类缓存
     private Set<Class<?>> cachedWrapperClasses;
 
     private Map<String, IllegalStateException> exceptions = new ConcurrentHashMap<String, IllegalStateException>();
@@ -128,8 +135,17 @@ public class ExtensionLoader<T> {
 
 
 
-    //- 每一个接口对应一个ExtensionLoader
-    //- 获取接口对应的ExtensionLoader,如果获取不到就new一个放到缓存
+    /***
+     *
+     * 每一个接口对应一个ExtensionLoader
+     * 获取接口对应的ExtensionLoader,如果获取不到就new一个放到缓存
+     * 该接口必须使用SPI注解。
+     *
+     * @author Nero
+     * @date 2019-10-23
+     * *@param: type
+     * @return org.apache.dubbo.common.extension.ExtensionLoader<T>
+     */
     @SuppressWarnings("unchecked")
     public static <T> ExtensionLoader<T> getExtensionLoader(Class<T> type) {
         if (type == null) {
@@ -150,6 +166,11 @@ public class ExtensionLoader<T> {
         }
         return loader;
     }
+
+
+
+
+
 
     // For testing purposes only
     public static void resetExtensionLoader(Class type) {
@@ -357,7 +378,7 @@ public class ExtensionLoader<T> {
      * 获取扩展接口的具体实现
      * @author Nero
      * @date 2019-10-18
-     * *@param: name 扩展点的具体实现类 name=com.xxx.xxx.xxx
+     * *@param: name 扩展点的具体实现类对应META-INF文件中的key
      * @return T
      */
     @SuppressWarnings("unchecked")
@@ -397,7 +418,7 @@ public class ExtensionLoader<T> {
         return getExtension(cachedDefaultName);
     }
 
-    //- 获取缓存的Class对象，protocol的地方有调用
+    //- 获取缓存的Class对象
     public boolean hasExtension(String name) {
         if (StringUtils.isEmpty(name)) {
             throw new IllegalArgumentException("Extension name == null");
@@ -561,7 +582,18 @@ public class ExtensionLoader<T> {
         return new IllegalStateException(buf.toString());
     }
 
-    @SuppressWarnings("unchecked")
+
+
+
+
+    /***
+     *
+     * 根据实现类的key 创建实现类instance
+     * @author Nero
+     * @date 2019-10-23
+     * *@param: name  META-INF下配置文件中实现类的key
+     * @return T
+     */
     private T createExtension(String name) {
         Class<?> clazz = getExtensionClasses().get(name);
         if (clazz == null) {
@@ -573,7 +605,11 @@ public class ExtensionLoader<T> {
                 EXTENSION_INSTANCES.putIfAbsent(clazz, clazz.newInstance());
                 instance = (T) EXTENSION_INSTANCES.get(clazz);
             }
+
+            //- 注入Adaptive 到instance中
             injectExtension(instance);
+
+            //- 遍历wrapper class缓存，将实例注入到wrapper中
             Set<Class<?>> wrapperClasses = cachedWrapperClasses;
             if (CollectionUtils.isNotEmpty(wrapperClasses)) {
                 for (Class<?> wrapperClass : wrapperClasses) {
@@ -592,7 +628,7 @@ public class ExtensionLoader<T> {
 
     /***
      *
-     * 注入类实例
+     * 注入类实例,这里注入的都是Adaptive代理类，用来搭配URL总线实现调用分发
      * @author Nero
      * @date 2019-10-22
      * *@param: instance   被注入的Adaptive实例
@@ -601,13 +637,13 @@ public class ExtensionLoader<T> {
     private T injectExtension(T instance) {
         try {
             if (objectFactory != null) {
+
+                //- 遍历该方法，查找有set特征的方法
                 for (Method method : instance.getClass().getMethods()) {
                     if (method.getName().startsWith("set")
                             && method.getParameterTypes().length == 1
                             && Modifier.isPublic(method.getModifiers())) {
-                        /**
-                         * Check {@link DisableInject} to see if we need auto injection for this property
-                         */
+
                         if (method.getAnnotation(DisableInject.class) != null) {
                             continue;
                         }
@@ -616,6 +652,7 @@ public class ExtensionLoader<T> {
                             continue;
                         }
                         try {
+                            //- 获取Adaptive 代理instance 通过反射，注入到当前的实现类中
                             String property = method.getName().length() > 3 ? method.getName().substring(3, 4).toLowerCase() + method.getName().substring(4) : "";
                             Object object = objectFactory.getExtension(pt, property);
                             if (object != null) {
@@ -651,6 +688,16 @@ public class ExtensionLoader<T> {
 
 
 
+
+
+    /***
+     *
+     * 获取Class对象缓存,如果缓存为空，则触发Class缓存的初始化
+     * @author Nero
+     * @date 2019-10-23
+     * *@param:
+     * @return java.util.Map<java.lang.String,java.lang.Class<?>>
+     */
     private Map<String, Class<?>> getExtensionClasses() {
         Map<String, Class<?>> classes = cachedClasses.get();
         if (classes == null) {
@@ -669,7 +716,7 @@ public class ExtensionLoader<T> {
 
     /***
      *
-     * 将
+     * 加载META-INF下的配置文件，将文件class对应的对象存入到
      * @author Nero
      * @date 2019-10-18
      * *@param:
@@ -792,13 +839,12 @@ public class ExtensionLoader<T> {
      * - 加载类对象到缓存
      * @author Nero
      * @date 2019-10-18
-     * *@param: extensionClasses 缓存对象
-     *  @param: resourceURL  接口spi文件file:// url
-     *  @param: clazz 类的class对象，实现类
-     *@param: name
+     * @param: extensionClasses 缓存对象
+     * @param: resourceURL  接口spi文件file:// url
+     * @param: clazz 类的class对象，实现类
+     * @param: name
      * @return void
      */
-    //
     private void loadClass(Map<String, Class<?>> extensionClasses, java.net.URL resourceURL, Class<?> clazz, String name) throws NoSuchMethodException {
         if (!type.isAssignableFrom(clazz)) {
             throw new IllegalStateException("Error occured when loading extension class (interface: " +
@@ -813,7 +859,7 @@ public class ExtensionLoader<T> {
                         + cachedAdaptiveClass.getClass().getName()
                         + ", " + clazz.getClass().getName());
             }
-        } else if (isWrapperClass(clazz)) {
+        } else if (isWrapperClass(clazz)) { //- 判定是否为包裹类的依据为是否为有接口参数的构造器
             Set<Class<?>> wrappers = cachedWrapperClasses;
             if (wrappers == null) {
                 cachedWrapperClasses = new ConcurrentHashSet<>();

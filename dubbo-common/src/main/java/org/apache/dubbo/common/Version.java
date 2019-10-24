@@ -159,11 +159,12 @@ public final class Version {
                 version = cls.getPackage().getSpecificationVersion();
             }
             if (StringUtils.isEmpty(version)) {
-                // guess version fro jar file name if nothing's found from MANIFEST.MF
+                // 获取该类的硬盘反射路径
                 CodeSource codeSource = cls.getProtectionDomain().getCodeSource();
                 if (codeSource == null) {
                     logger.info("No codeSource for class " + cls.getName() + " when getVersion, use default version " + defaultVersion);
                 } else {
+                    //- 获取该类的绝对路径
                     String file = codeSource.getLocation().getFile();
                     if (file != null && file.length() > 0 && file.endsWith(".jar")) {
                         file = file.substring(0, file.length() - 4);

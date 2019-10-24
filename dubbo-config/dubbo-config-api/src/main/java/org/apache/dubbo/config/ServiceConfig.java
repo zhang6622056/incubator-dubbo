@@ -363,6 +363,8 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         }
         exported = true;
 
+
+        //- interfaceName为接口的全限定名
         if (StringUtils.isEmpty(path)) {
             path = interfaceName;
         }
@@ -408,11 +410,24 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         unexported = true;
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+
+
+
+
+    /***
+     *
+     * 初始化完成providerModel之后，真正的导出处理
+     * @author Nero
+     * @date 2019-10-24
+     * *@param:
+     * @return void
+     */
     private void doExportUrls() {
 
-        //-获取注册中心url，目前只支持一个，但是dubbo预留了list结构
+        //-获取注册中心url，支持多个， 遍历配置中的注册中心，将注册中心，转换url化存储
         List<URL> registryURLs = loadRegistries(true);
+
+        //- 遍历protocols ，在每个协议下导出服务
         for (ProtocolConfig protocolConfig : protocols) {
             doExportUrlsFor1Protocol(protocolConfig, registryURLs);
         }
@@ -424,8 +439,8 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
      * 统一url暴露服务
      * @author Nero
      * @date 2019-10-16
-     * *@param: protocolConfig 协议配置
-     *  @param: registryURLs  统一暴露url
+     * *@param: protocolConfig 导出的协议对象
+     *  @param: registryURLs  注册中心url集合
      * @return void
      */
     private void doExportUrlsFor1Protocol(ProtocolConfig protocolConfig, List<URL> registryURLs) {
@@ -436,7 +451,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         }
 
 
-
+        //- 设置参数到map对象中
         Map<String, String> map = new HashMap<String, String>();
         map.put(Constants.SIDE_KEY, Constants.PROVIDER_SIDE);
         appendRuntimeParameters(map);
@@ -447,7 +462,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         appendParameters(map, this);
 
 
-        //methods上的配置
+        //methods上的配置 TODO-READ
         if (CollectionUtils.isNotEmpty(methods)) {
             for (MethodConfig method : methods) {
                 appendParameters(map, method, method.getName());
@@ -508,16 +523,19 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
 
 
-
+        //TODO-READ 泛华调用，默认为false
         if (ProtocolUtils.isGeneric(generic)) {
             map.put(Constants.GENERIC_KEY, generic);
             map.put(Constants.METHODS_KEY, Constants.ANY_VALUE);
         } else {
+
+            //-
             String revision = Version.getVersion(interfaceClass, version);
             if (revision != null && revision.length() > 0) {
                 map.put("revision", revision);
             }
 
+            //- 获取methods列表，以文本串表示，逗号分割，装载到url Map
             String[] methods = Wrapper.getWrapper(interfaceClass).getMethodNames();
             if (methods.length == 0) {
                 logger.warn("No method found in service interface " + interfaceClass.getName());
@@ -528,7 +546,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         }
 
 
-
+        //- 注册中心令牌注册！TODO-READ
         if (!ConfigUtils.isEmpty(token)) {
             if (ConfigUtils.isDefault(token)) {
                 map.put(Constants.TOKEN_KEY, UUID.randomUUID().toString());
@@ -543,13 +561,14 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         }
 
 
-        //- 生成最终暴露的url
+        //TODO-READ 获取暴露的host & port
         String host = this.findConfigedHosts(protocolConfig, registryURLs, map);
         Integer port = this.findConfigedPorts(protocolConfig, name, map);
+        //TODO-READ 生成最终暴露的url
         URL url = new URL(name, host, port, (StringUtils.isEmpty(contextPath) ? "" : contextPath + "/") + path, map);
 
-
-        //-TODO-ZL 扩展点加载
+        //-dubbo://172.17.61.3:20880/org.apache.dubbo.demo.DemoService?anyhost=true&application=dubbo-demo-api-provider&bind.ip=172.17.61.3&bind.port=20880&dubbo=2.0.2&generic=false&group=functionA&interface=org.apache.dubbo.demo.DemoService&methods=sayHello&pid=40427&release=&side=provider&timestamp=1571923521659
+        //-TODO-ZL-NOW
         if (ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
                 .hasExtension(url.getProtocol())) {
             url = ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
@@ -633,15 +652,18 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         return ref.getClass();
     }
 
-    /**
-     * Register & bind IP address for service provider, can be configured separately.
-     * Configuration priority: environment variables -> java system properties -> host property in config file ->
-     * /etc/hosts -> default network address -> first available network address
+
+
+
+    /***
      *
-     * @param protocolConfig
-     * @param registryURLs
-     * @param map
-     * @return
+     * 获取到注册中心的host
+     * @author Nero
+     * @date 2019-10-24
+     * *@param: protocolConfig
+      *@param: registryURLs
+      *@param: map
+     * @return java.lang.String
      */
     private String findConfigedHosts(ProtocolConfig protocolConfig, List<URL> registryURLs, Map<String, String> map) {
         boolean anyhost = false;

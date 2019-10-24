@@ -38,6 +38,7 @@ public class Application {
         service.setInterface(DemoService.class);
         //- 设置实现类实例
         service.setRef(new DemoServiceImpl());
+        service.setGroup("functionA");
         service.export();
         System.in.read();
     }

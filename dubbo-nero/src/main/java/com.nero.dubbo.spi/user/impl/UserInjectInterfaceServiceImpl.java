@@ -15,7 +15,6 @@ import org.apache.dubbo.common.URL;
  */
 public class UserInjectInterfaceServiceImpl implements UserInterface {
 
-
     @Override
     public String getUserName(URL url) {
         return "qweasd";

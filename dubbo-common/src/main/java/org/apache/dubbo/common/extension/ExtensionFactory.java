@@ -18,6 +18,10 @@ package org.apache.dubbo.common.extension;
 
 /**
  * ExtensionFactory
+ * 获取自适应的代理扩展类实例Adaptive
+ *
+ *
+ *
  */
 @SPI
 public interface ExtensionFactory {

@@ -27,6 +27,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
 public class Application {
+
+
     /**
      * In order to make sure multicast registry works, need to specify '-Djava.net.preferIPv4Stack=true' before
      * launch the application
@@ -36,6 +38,9 @@ public class Application {
         context.start();
         System.in.read();
     }
+
+
+
 
     @Configuration
     @EnableDubbo(scanBasePackages = "org.apache.dubbo.demo.provider")
@@ -48,4 +53,8 @@ public class Application {
             return registryConfig;
         }
     }
+
+
+
+
 }
