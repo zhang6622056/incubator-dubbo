@@ -46,8 +46,9 @@ public class NettyClient extends AbstractClient {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
 
-    // ChannelFactory's closure has a DirectMemory leak, using static to avoid
-    // https://issues.jboss.org/browse/NETTY-424
+
+
+    //-
     private static final ChannelFactory channelFactory = new NioClientSocketChannelFactory(Executors.newCachedThreadPool(new NamedThreadFactory("NettyClientBoss", true)),
             Executors.newCachedThreadPool(new NamedThreadFactory("NettyClientWorker", true)),
             Constants.DEFAULT_IO_THREADS);

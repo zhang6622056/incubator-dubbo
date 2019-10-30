@@ -155,9 +155,11 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
     /**
      * Check whether the registry config is exists, and then conversion it to {@link RegistryConfig}
      */
+    //- 检查配置中心是否存在，转换为RegistryConfig结构
     protected void checkRegistry() {
+        //- 如果注册中心没有设置，则读取系统变量 dubbo.registry.address
         loadRegistriesFromBackwardConfig();
-
+        //- 设置注册中心id TODO-READ
         convertRegistryIdsToRegistries();
 
         for (RegistryConfig registryConfig : registries) {
@@ -166,7 +168,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
                         "The registry config is: " + registryConfig);
             }
         }
-
+        //TODO-READ
         useRegistryForConfigIfNecessary();
     }
 
@@ -183,6 +185,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
         ApplicationModel.setApplication(application.getName());
 
         // backward compatibility
+        //- 延迟关闭服务设置
         String wait = ConfigUtils.getProperty(Constants.SHUTDOWN_WAIT_KEY);
         if (wait != null && wait.trim().length() > 0) {
             System.setProperty(Constants.SHUTDOWN_WAIT_KEY, wait.trim());
@@ -220,9 +223,12 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
 
     protected void checkMetadataReport() {
         // TODO get from ConfigManager first, only create if absent.
+        //- 初始化元数据结构
         if (metadataReportConfig == null) {
             setMetadataReportConfig(new MetadataReportConfig());
         }
+
+        //- 按照优先级覆盖加载配置
         metadataReportConfig.refresh();
         if (!metadataReportConfig.isValid()) {
             logger.warn("There's no valid metadata config found, if you are using the simplified mode of registry url, " +
@@ -547,6 +553,8 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
 
     }
 
+
+    //- 如果注册中心没有设置，则加载默认配置
     private void loadRegistriesFromBackwardConfig() {
         // for backward compatibility
         // -Ddubbo.registry.address is now deprecated.

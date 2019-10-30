@@ -693,6 +693,7 @@ public class ExtensionLoader<T> {
     /***
      *
      * 获取Class对象缓存,如果缓存为空，则触发Class缓存的初始化
+     * holder内维护的volitile 引用保证了指令禁止重排序
      * @author Nero
      * @date 2019-10-23
      * *@param:

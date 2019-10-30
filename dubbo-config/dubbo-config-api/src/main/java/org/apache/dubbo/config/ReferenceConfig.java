@@ -105,6 +105,7 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
 
     /**
      * The interface class of the reference service
+     * 服务提供者接口
      */
     private Class<?> interfaceClass;
     
@@ -192,22 +193,41 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
      * This method should be called right after the creation of this class's instance, before any property in other config modules is used.
      * Check each config modules are created properly and override their properties if necessary.
      */
+    /**
+     *
+     * 加载配置信息。
+     * @author Nero
+     * @date 2019-10-30
+     * *@param:
+     * @return void
+     */
     public void checkAndUpdateSubConfigs() {
+
+        //- 校验接口合法性
         if (StringUtils.isEmpty(interfaceName)) {
             throw new IllegalStateException("<dubbo:reference interface=\"\" /> interface not allow null!");
         }
+
+        //- 加载配置
         completeCompoundConfigs();
+        //- TODO-READ
         startConfigCenter();
-        // get consumer's global configuration
+        //- 加载ConsumerConfig 局部变量的配置。
         checkDefault();
+        //- 通过覆盖操作进行优先级配置 TODO-READ
         this.refresh();
+
+        //- 设置泛华调用
         if (getGeneric() == null && getConsumer() != null) {
             setGeneric(getConsumer().getGeneric());
         }
+
+
         if (ProtocolUtils.isGeneric(getGeneric())) {
             interfaceClass = GenericService.class;
         } else {
             try {
+                //-获取服务提供者接口class对象
                 interfaceClass = Class.forName(interfaceName, true, Thread.currentThread()
                         .getContextClassLoader());
             } catch (ClassNotFoundException e) {
@@ -215,8 +235,13 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
             }
             checkInterfaceAndMethods(interfaceClass, methods);
         }
+        //- TODO-READ 应该是一种机制
         resolveFile();
+        //- 应用纬度配置加载
+        // 应用模型 ApplicationModel DATASTRUCT-ZL
+        //- 延迟关闭服务设置
         checkApplication();
+        //- 设置元数据信息
         checkMetadataReport();
     }
 
@@ -250,12 +275,20 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
     }
 
     private void init() {
+
+        //- 预防重复初始化
         if (initialized) {
             return;
         }
         initialized = true;
+        //- 设置存根对象 TODO-READ
         checkStubAndLocal(interfaceClass);
+
+        //- 设置mock对象 TODO-READ
         checkMock(interfaceClass);
+
+
+        //- 实例化URL Map ，用来下文的拼装url
         Map<String, String> map = new HashMap<String, String>();
 
         map.put(Constants.SIDE_KEY, Constants.CONSUMER_SIDE);
@@ -303,16 +336,26 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
         }
         map.put(Constants.REGISTER_IP_KEY, hostToRegistry);
 
+
+        //- 上述为设置相关属性到map对象
+
+
+
+        //- 为接口生成代理对象
         ref = createProxy(map);
 
         ConsumerModel consumerModel = new ConsumerModel(getUniqueServiceName(), interfaceClass, ref, interfaceClass.getMethods(), attributes);
         ApplicationModel.initConsumerModel(getUniqueServiceName(), consumerModel);
     }
 
+
+
+    //- 生成reference 代理对象
     @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
     private T createProxy(Map<String, String> map) {
         URL tmpUrl = new URL("temp", "localhost", 0, map);
         final boolean isJvmRefer;
+        //- 读取是否本地引用 injvm TODO-READ 相关细则
         if (isInjvm() == null) {
             if (url != null && url.length() > 0) { // if a url is specified, don't do local reference
                 isJvmRefer = false;
@@ -324,6 +367,8 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
             isJvmRefer = isInjvm();
         }
 
+
+        //- 是否本地引用
         if (isJvmRefer) {
             URL url = new URL(Constants.LOCAL_PROTOCOL, Constants.LOCALHOST_VALUE, 0, interfaceClass.getName()).addParameters(map);
             invoker = refprotocol.refer(interfaceClass, url);
@@ -347,8 +392,15 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
                     }
                 }
             } else { // assemble URL from register center's configuration
+                //- 组装URL
+
+
+
                 checkRegistry();
+                //-遍历配置中的注册中心，将注册中心转换url化存储
                 List<URL> us = loadRegistries(false);
+
+                //- 遍历registry，设置monitor TODO-READ
                 if (CollectionUtils.isNotEmpty(us)) {
                     for (URL u : us) {
                         URL monitorUrl = loadMonitor(u);
@@ -363,6 +415,8 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
                 }
             }
 
+
+            //- 核心方法，refer TODO-READ
             if (urls.size() == 1) {
                 invoker = refprotocol.refer(interfaceClass, urls.get(0));
             } else {
@@ -392,6 +446,9 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
         if (c == null) {
             c = true; // default true
         }
+
+
+        //- 检测服务状态是否可用
         if (c && !invoker.isAvailable()) {
             // make it possible for consumer to retry later if provider is temporarily unavailable
             initialized = false;
@@ -417,6 +474,8 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
         createConsumerIfAbsent();
     }
 
+
+    //- 加载ConsumerConfig 局部变量的配置。
     private void createConsumerIfAbsent() {
         if (consumer != null) {
             return;
@@ -432,6 +491,8 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
                 );
     }
 
+
+    //- 加载配置
     private void completeCompoundConfigs() {
         if (consumer != null) {
             if (application == null) {

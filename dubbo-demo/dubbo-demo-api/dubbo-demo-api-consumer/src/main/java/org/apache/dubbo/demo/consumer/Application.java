@@ -30,9 +30,16 @@ public class Application {
      */
     public static void main(String[] args) {
         ReferenceConfig<DemoService> reference = new ReferenceConfig<>();
+
+
+        //- 设置应用名
         reference.setApplication(new ApplicationConfig("dubbo-demo-api-consumer"));
-        reference.setRegistry(new RegistryConfig("multicast://224.5.6.7:1234"));
+        //- 设置注册中心地址
+        reference.setRegistry(new RegistryConfig("zookeeper://127.0.0.1:2181"));
+        //- 设置调用的接口
         reference.setInterface(DemoService.class);
+
+        //- 获取引用对象
         DemoService service = reference.get();
         String message = service.sayHello("dubbo");
         System.out.println(message);

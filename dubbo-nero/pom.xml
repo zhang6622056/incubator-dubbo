@@ -16,6 +16,10 @@
             <artifactId>dubbo-common</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.jboss.netty</groupId>
+            <artifactId>netty</artifactId>
+        </dependency>
     </dependencies>
 
 

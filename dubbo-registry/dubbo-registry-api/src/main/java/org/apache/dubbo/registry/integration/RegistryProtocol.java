@@ -343,6 +343,7 @@ public class RegistryProtocol implements Protocol {
     @Override
     @SuppressWarnings("unchecked")
     public <T> Invoker<T> refer(Class<T> type, URL url) throws RpcException {
+        //- 设置本次ref的Protocl
         url = url.setProtocol(url.getParameter(REGISTRY_KEY, DEFAULT_REGISTRY)).removeParameter(REGISTRY_KEY);
         Registry registry = registryFactory.getRegistry(url);
         if (RegistryService.class.equals(type)) {
@@ -350,13 +351,19 @@ public class RegistryProtocol implements Protocol {
         }
 
         // group="a,b" or group="*"
+        //- URL和map对象的逆转
         Map<String, String> qs = StringUtils.parseQueryString(url.getParameterAndDecoded(REFER_KEY));
+
+
+        //- group不同，refer的方法也不相同，TODO-POINT,有必要好好看看
         String group = qs.get(Constants.GROUP_KEY);
         if (group != null && group.length() > 0) {
             if ((COMMA_SPLIT_PATTERN.split(group)).length > 1 || "*".equals(group)) {
                 return doRefer(getMergeableCluster(), registry, type, url);
             }
         }
+
+
         return doRefer(cluster, registry, type, url);
     }
 
@@ -365,16 +372,22 @@ public class RegistryProtocol implements Protocol {
     }
 
     private <T> Invoker<T> doRefer(Cluster cluster, Registry registry, Class<T> type, URL url) {
+        //- 构建RegistryDirectory 结构
         RegistryDirectory<T> directory = new RegistryDirectory<T>(type, url);
         directory.setRegistry(registry);
         directory.setProtocol(protocol);
-        // all attributes of REFER_KEY
+
+
+
+        // 逆向url到map结构，转换consumer的注册url
         Map<String, String> parameters = new HashMap<String, String>(directory.getUrl().getParameters());
         URL subscribeUrl = new URL(CONSUMER_PROTOCOL, parameters.remove(REGISTER_IP_KEY), 0, type.getName(), parameters);
         if (!ANY_VALUE.equals(url.getServiceInterface()) && url.getParameter(REGISTER_KEY, true)) {
             directory.setRegisteredConsumerUrl(getRegisteredConsumerUrl(subscribeUrl, url));
             registry.register(directory.getRegisteredConsumerUrl());
         }
+
+        //-设置router url
         directory.buildRouterChain(subscribeUrl);
         directory.subscribe(subscribeUrl.addParameter(CATEGORY_KEY,
                 PROVIDERS_CATEGORY + "," + CONFIGURATORS_CATEGORY + "," + ROUTERS_CATEGORY));

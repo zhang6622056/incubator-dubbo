@@ -109,6 +109,7 @@ public class ZookeeperRegistry extends FailbackRegistry {
     @Override
     public void doRegister(URL url) {
         try {
+            //- toUrlPath: /dubbo/org.apache.dubbo.demo.DemoService/providers/dubbo%3A%2F%2F172.17.61.76%3A20880%2Forg.apache.dubbo.demo.DemoService%3Fanyhost%3Dtrue%26application%3Ddubbo-demo-api-provider%26dubbo%3D2.0.2%26generic%3Dfalse%26group%3DfunctionA%26interface%3Dorg.apache.dubbo.demo.DemoService%26methods%3DsayHello%26pid%3D5948%26release%3D%26side%3Dprovider%26timestamp%3D1572352901188
             zkClient.create(toUrlPath(url), url.getParameter(Constants.DYNAMIC_KEY, true));
         } catch (Throwable e) {
             throw new RpcException("Failed to register " + url + " to zookeeper " + getUrl() + ", cause: " + e.getMessage(), e);

@@ -535,10 +535,7 @@ public abstract class AbstractConfig implements Serializable {
         this.prefix = prefix;
     }
 
-    /**
-     * TODO: Currently, only support overriding of properties explicitly defined in Config class, doesn't support
-     * overriding of customized parameters stored in 'parameters'.
-     */
+    //- 通过覆盖操作进行优先级配置
     public void refresh() {
         try {
             CompositeConfiguration compositeConfiguration = Environment.getInstance().getConfiguration(getPrefix(), getId());

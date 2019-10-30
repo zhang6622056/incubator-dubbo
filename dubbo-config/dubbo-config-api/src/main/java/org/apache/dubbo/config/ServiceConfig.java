@@ -523,7 +523,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
 
 
-        //TODO-READ 泛华调用，默认为false
+        //TODO-READ 泛化调用，默认为false
         if (ProtocolUtils.isGeneric(generic)) {
             map.put(Constants.GENERIC_KEY, generic);
             map.put(Constants.METHODS_KEY, Constants.ANY_VALUE);
@@ -568,7 +568,6 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         URL url = new URL(name, host, port, (StringUtils.isEmpty(contextPath) ? "" : contextPath + "/") + path, map);
 
         //-dubbo://172.17.61.3:20880/org.apache.dubbo.demo.DemoService?anyhost=true&application=dubbo-demo-api-provider&bind.ip=172.17.61.3&bind.port=20880&dubbo=2.0.2&generic=false&group=functionA&interface=org.apache.dubbo.demo.DemoService&methods=sayHello&pid=40427&release=&side=provider&timestamp=1571923521659
-        //-TODO-ZL-NOW
         if (ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
                 .hasExtension(url.getProtocol())) {
             url = ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
@@ -579,11 +578,14 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         // don't export when none is configured
         if (!Constants.SCOPE_NONE.equalsIgnoreCase(scope)) {
 
-            // export to local if the config is not remote (export to remote only when config is remote)
+            //本地暴露
             if (!Constants.SCOPE_REMOTE.equalsIgnoreCase(scope)) {
                 exportLocal(url);
             }
+
+
             // export to remote if the config is not local (export to local only when config is local)
+            //- 远程暴露
             if (!Constants.SCOPE_LOCAL.equalsIgnoreCase(scope)) {
                 if (logger.isInfoEnabled()) {
                     logger.info("Export dubbo service " + interfaceClass.getName() + " to url " + url);

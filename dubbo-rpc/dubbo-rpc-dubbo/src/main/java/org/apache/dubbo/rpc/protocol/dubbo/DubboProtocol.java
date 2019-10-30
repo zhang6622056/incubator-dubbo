@@ -255,6 +255,7 @@ public class DubboProtocol extends AbstractProtocol {
         exporterMap.put(key, exporter);
 
         //export an stub service for dispatching event
+        //- 本地存根相关code TODO-READ
         Boolean isStubSupportEvent = url.getParameter(Constants.STUB_EVENT_KEY, Constants.DEFAULT_STUB_EVENT);
         Boolean isCallbackservice = url.getParameter(Constants.IS_CALLBACK_SERVICE, false);
         if (isStubSupportEvent && !isCallbackservice) {
@@ -269,11 +270,19 @@ public class DubboProtocol extends AbstractProtocol {
             }
         }
 
+
+        //- 启动server
         openServer(url);
+
+
         optimizeSerialization(url);
         return exporter;
     }
 
+
+
+
+    //- 启动服务器
     private void openServer(URL url) {
         // find server.
         String key = url.getAddress();
@@ -298,30 +307,47 @@ public class DubboProtocol extends AbstractProtocol {
     private ExchangeServer createServer(URL url) {
         // send readonly event when server closes, it's enabled by default
         url = url.addParameterIfAbsent(Constants.CHANNEL_READONLYEVENT_SENT_KEY, Boolean.TRUE.toString());
-        // enable heartbeat by default
+        // 添加心跳检测配置到 url 中
         url = url.addParameterIfAbsent(Constants.HEARTBEAT_KEY, String.valueOf(Constants.DEFAULT_HEARTBEAT));
+        // 获取 server 参数，默认为 netty
         String str = url.getParameter(Constants.SERVER_KEY, Constants.DEFAULT_REMOTING_SERVER);
 
+
+        //- 获取url中的Transport扩展，是否支持
         if (str != null && str.length() > 0 && !ExtensionLoader.getExtensionLoader(Transporter.class).hasExtension(str)) {
             throw new RpcException("Unsupported server type: " + str + ", url: " + url);
         }
 
+        // 添加编码解码器参数
         url = url.addParameter(Constants.CODEC_KEY, DubboCodec.NAME);
         ExchangeServer server;
         try {
+
+            // 创建 ExchangeServer
             server = Exchangers.bind(url, requestHandler);
         } catch (RemotingException e) {
             throw new RpcException("Fail to start server(url: " + url + ") " + e.getMessage(), e);
         }
+
+
+        // 获取 client 参数，可指定 netty，mina
         str = url.getParameter(Constants.CLIENT_KEY);
         if (str != null && str.length() > 0) {
+
+            // 获取所有的 Transporter 实现类名称集合，比如 supportedTypes = [netty, mina]
             Set<String> supportedTypes = ExtensionLoader.getExtensionLoader(Transporter.class).getSupportedExtensions();
+
+            // 检测当前 Dubbo 所支持的 Transporter 实现类名称列表中，
+            // 是否包含 client 所表示的 Transporter，若不包含，则抛出异常
             if (!supportedTypes.contains(str)) {
                 throw new RpcException("Unsupported client type: " + str);
             }
         }
         return server;
     }
+
+
+
 
     private void optimizeSerialization(URL url) throws RpcException {
         String className = url.getParameter(Constants.OPTIMIZER_KEY, "");
