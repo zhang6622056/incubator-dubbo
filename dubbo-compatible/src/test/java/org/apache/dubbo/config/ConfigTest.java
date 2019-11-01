@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
 
 public class ConfigTest {
     private com.alibaba.dubbo.config.ApplicationConfig applicationConfig = new com.alibaba.dubbo.config.ApplicationConfig("first-dubbo-test");
-    private com.alibaba.dubbo.config.RegistryConfig registryConfig = new com.alibaba.dubbo.config.RegistryConfig("multicast://224.5.6.7:1234");
+    private com.alibaba.dubbo.config.RegistryConfig registryConfig = new com.alibaba.dubbo.config.RegistryConfig("zookeeper://127.0.0.1:2181");
 
     @AfterEach
     public void tearDown() {

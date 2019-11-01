@@ -28,10 +28,8 @@ public class Application {
      * In order to make sure multicast registry works, need to specify '-Djava.net.preferIPv4Stack=true' before
      * launch the application
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         ReferenceConfig<DemoService> reference = new ReferenceConfig<>();
-
-
         //- 设置应用名
         reference.setApplication(new ApplicationConfig("dubbo-demo-api-consumer"));
         //- 设置注册中心地址
@@ -39,9 +37,15 @@ public class Application {
         //- 设置调用的接口
         reference.setInterface(DemoService.class);
 
-        //- 获取引用对象
-        DemoService service = reference.get();
-        String message = service.sayHello("dubbo");
-        System.out.println(message);
+        while(true){
+            //- 获取引用对象
+            DemoService service = reference.get();
+            Thread.sleep(3000);
+        }
+
+
+//        String message = service.sayHello("dubbo");
+//        System.out.println(message);
+
     }
 }
