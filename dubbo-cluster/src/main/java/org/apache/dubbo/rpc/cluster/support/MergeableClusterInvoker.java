@@ -47,6 +47,17 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+
+
+
+/***
+ *
+ * 单机的invoker对象
+ * @author Nero
+ * @date 2019-10-30
+ * *@param: null
+ * @return
+ */
 @SuppressWarnings("unchecked")
 public class MergeableClusterInvoker<T> extends AbstractClusterInvoker<T> {
 

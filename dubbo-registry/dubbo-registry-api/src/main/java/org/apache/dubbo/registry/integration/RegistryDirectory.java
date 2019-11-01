@@ -111,6 +111,7 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
     private ReferenceConfigurationListener serviceConfigurationListener;
 
 
+
     public RegistryDirectory(Class<T> serviceType, URL url) {
         super(url);
         if (serviceType == null) {

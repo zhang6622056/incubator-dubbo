@@ -343,7 +343,7 @@ public class RegistryProtocol implements Protocol {
     @Override
     @SuppressWarnings("unchecked")
     public <T> Invoker<T> refer(Class<T> type, URL url) throws RpcException {
-        //- 设置本次ref的Protocl
+        //- 将registry 协议替换成默认的dubbo协议，构造registry对象
         url = url.setProtocol(url.getParameter(REGISTRY_KEY, DEFAULT_REGISTRY)).removeParameter(REGISTRY_KEY);
         Registry registry = registryFactory.getRegistry(url);
         if (RegistryService.class.equals(type)) {
@@ -363,7 +363,6 @@ public class RegistryProtocol implements Protocol {
             }
         }
 
-
         return doRefer(cluster, registry, type, url);
     }
 
@@ -371,6 +370,22 @@ public class RegistryProtocol implements Protocol {
         return ExtensionLoader.getExtensionLoader(Cluster.class).getExtension("mergeable");
     }
 
+
+    /**
+     *
+     * 功能描述
+     * @author Nero
+     * @date 2019-11-01
+     * registry:zookeeper://127.0.0.1:2181/org.apache.dubbo.registry.RegistryService?application=dubbo-demo-api-consumer&dubbo=2.0.2&interface=org.apache.dubbo.registry.RegistryService&pid=58124&timestamp=1572576593411
+     *
+     * type = interface org.apache.dubbo.demo.DemoService
+     *
+     * url = zookeeper://127.0.0.1:2181/org.apache.dubbo.registry.RegistryService?application=dubbo-demo-api-consumer&dubbo=2.0.2&pid=58124&refer=application%3Ddubbo-demo-api-consumer%26dubbo%3D2.0.2%26interface%3Dorg.apache.dubbo.demo.DemoService%26methods%3DsayHello%26pid%3D58124%26register.ip%3D172.17.61.76%26side%3Dconsumer%26timestamp%3D1572576525963&timestamp=1572576593411
+     *
+     *
+     * cluster = spi Adaptive
+     * @return org.apache.dubbo.rpc.Invoker<T>
+     */
     private <T> Invoker<T> doRefer(Cluster cluster, Registry registry, Class<T> type, URL url) {
         //- 构建RegistryDirectory 结构
         RegistryDirectory<T> directory = new RegistryDirectory<T>(type, url);
@@ -379,7 +394,7 @@ public class RegistryProtocol implements Protocol {
 
 
 
-        // 逆向url到map结构，转换consumer的注册url
+        // 逆向url到map结构，转换consumer的注册url,向注册中心执行注册动作
         Map<String, String> parameters = new HashMap<String, String>(directory.getUrl().getParameters());
         URL subscribeUrl = new URL(CONSUMER_PROTOCOL, parameters.remove(REGISTER_IP_KEY), 0, type.getName(), parameters);
         if (!ANY_VALUE.equals(url.getServiceInterface()) && url.getParameter(REGISTER_KEY, true)) {
@@ -392,6 +407,8 @@ public class RegistryProtocol implements Protocol {
         directory.subscribe(subscribeUrl.addParameter(CATEGORY_KEY,
                 PROVIDERS_CATEGORY + "," + CONFIGURATORS_CATEGORY + "," + ROUTERS_CATEGORY));
 
+
+        //TODO-NOW
         Invoker invoker = cluster.join(directory);
         ProviderConsumerRegTable.registerConsumer(invoker, url, subscribeUrl, directory);
         return invoker;

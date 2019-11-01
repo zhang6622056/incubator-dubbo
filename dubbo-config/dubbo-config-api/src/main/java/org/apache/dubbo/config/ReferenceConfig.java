@@ -246,6 +246,7 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
     }
 
     public synchronized T get() {
+        // 加载配置到ReferenceConfig 对象
         checkAndUpdateSubConfigs();
 
         if (destroyed) {
@@ -274,6 +275,7 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
         ref = null;
     }
 
+    //- reference 初始化
     private void init() {
 
         //- 预防重复初始化
@@ -376,7 +378,10 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
                 logger.info("Using injvm service " + interfaceClass.getName());
             }
         } else {
-            if (url != null && url.length() > 0) { // user specified URL, could be peer-to-peer address, or register center's address.
+
+            // user specified URL, could be peer-to-peer address, or register center's address.
+            //- 用户特殊指定的地址，采取直连的方式，更高的优先级
+            if (url != null && url.length() > 0) {
                 String[] us = Constants.SEMICOLON_SPLIT_PATTERN.split(url);
                 if (us != null && us.length > 0) {
                     for (String u : us) {
@@ -392,8 +397,7 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
                     }
                 }
             } else { // assemble URL from register center's configuration
-                //- 组装URL
-
+                //- 从注册中心的配置中url
 
 
                 checkRegistry();
@@ -416,7 +420,7 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
             }
 
 
-            //- 核心方法，refer TODO-READ
+            //- 核心方法，注册消费者，订阅目录
             if (urls.size() == 1) {
                 invoker = refprotocol.refer(interfaceClass, urls.get(0));
             } else {
@@ -448,7 +452,7 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
         }
 
 
-        //- 检测服务状态是否可用
+        //- 检测服务状态是否可用，invoker模型内部维护了很多变量，本次是否可用委托给了directory对象
         if (c && !invoker.isAvailable()) {
             // make it possible for consumer to retry later if provider is temporarily unavailable
             initialized = false;
