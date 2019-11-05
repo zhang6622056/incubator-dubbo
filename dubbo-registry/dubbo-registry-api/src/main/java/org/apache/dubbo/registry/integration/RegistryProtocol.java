@@ -154,6 +154,7 @@ public class RegistryProtocol implements Protocol {
     }
 
     public void register(URL registryUrl, URL registeredProviderUrl) {
+        //- 使用dubbo spi获取对应的registry 对象，ZookeeperRegistry
         Registry registry = registryFactory.getRegistry(registryUrl);
         registry.register(registeredProviderUrl);
     }
@@ -363,6 +364,11 @@ public class RegistryProtocol implements Protocol {
             }
         }
 
+
+//        class,type:接口class
+//        url：总线
+//        cluster :  cluster$Adaptive
+//        registry : zookeeper://127.0.0.1:2181/org.apache.dubbo.registry.RegistryService?application=dubbo-demo-api-consumer&dubbo=2.0.2&interface=org.apache.dubbo.registry.RegistryService&pid=74983&timestamp=1572946875415
         return doRefer(cluster, registry, type, url);
     }
 
@@ -394,7 +400,7 @@ public class RegistryProtocol implements Protocol {
 
 
 
-        // 逆向url到map结构，转换consumer的注册url,向注册中心执行注册动作
+        // 注册服务消费者，在 consumers 目录下新节点，zk上传consumers节点
         Map<String, String> parameters = new HashMap<String, String>(directory.getUrl().getParameters());
         URL subscribeUrl = new URL(CONSUMER_PROTOCOL, parameters.remove(REGISTER_IP_KEY), 0, type.getName(), parameters);
         if (!ANY_VALUE.equals(url.getServiceInterface()) && url.getParameter(REGISTER_KEY, true)) {
@@ -404,11 +410,13 @@ public class RegistryProtocol implements Protocol {
 
         //-设置router url
         directory.buildRouterChain(subscribeUrl);
+
+        // 订阅 providers、configurators、routers 等节点数据,zk 上传routers
         directory.subscribe(subscribeUrl.addParameter(CATEGORY_KEY,
                 PROVIDERS_CATEGORY + "," + CONFIGURATORS_CATEGORY + "," + ROUTERS_CATEGORY));
 
 
-        //TODO-NOW
+        //构建调用invoker
         Invoker invoker = cluster.join(directory);
         ProviderConsumerRegTable.registerConsumer(invoker, url, subscribeUrl, directory);
         return invoker;

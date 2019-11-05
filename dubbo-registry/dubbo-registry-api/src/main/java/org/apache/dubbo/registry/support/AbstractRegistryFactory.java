@@ -80,6 +80,21 @@ public abstract class AbstractRegistryFactory implements RegistryFactory {
         }
     }
 
+
+
+
+
+
+
+
+    /****
+     *
+     * 获取注册中心
+     * @author Nero
+     * @date 2019-11-05
+     * *@param: url
+     * @return org.apache.dubbo.registry.Registry
+     */
     @Override
     public Registry getRegistry(URL url) {
         url = url.setPath(RegistryService.class.getName())

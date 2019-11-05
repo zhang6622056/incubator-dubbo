@@ -23,29 +23,38 @@ import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.config.RegistryConfig;
 import org.apache.dubbo.demo.DemoService;
 
+import java.io.IOException;
+import java.lang.reflect.Proxy;
+
 public class Application {
     /**
      * In order to make sure multicast registry works, need to specify '-Djava.net.preferIPv4Stack=true' before
      * launch the application
      */
-    public static void main(String[] args) throws InterruptedException {
-        ReferenceConfig<DemoService> reference = new ReferenceConfig<>();
-        //- 设置应用名
-        reference.setApplication(new ApplicationConfig("dubbo-demo-api-consumer"));
-        //- 设置注册中心地址
-        reference.setRegistry(new RegistryConfig("zookeeper://127.0.0.1:2181"));
-        //- 设置调用的接口
-        reference.setInterface(DemoService.class);
+    public static void main(String[] args) throws InterruptedException, IOException {
+        System.getProperties().put("sun.misc.ProxyGenerator.saveGeneratedFiles", "true");
+
 
         while(true){
-            //- 获取引用对象
+            ReferenceConfig<DemoService> reference = new ReferenceConfig<>();
+            //- 设置应用名
+            reference.setApplication(new ApplicationConfig("dubbo-demo-api-consumer"));
+            //- 设置注册中心地址
+            reference.setRegistry(new RegistryConfig("zookeeper://127.0.0.1:2181"));
+            //- 设置调用的接口
+            reference.setInterface(DemoService.class);
             DemoService service = reference.get();
-            Thread.sleep(3000);
+
+            System.out.println(service.getClass().getName());
+            System.out.println("$Proxy0.class全名: "+ Proxy.getProxyClass(DemoService.class.getClassLoader(), DemoService.class));
+
+
+
+            String message = service.sayHello("dubbo");
+            System.out.println(message);
+            Thread.sleep(30000);
         }
 
-
-//        String message = service.sayHello("dubbo");
-//        System.out.println(message);
 
     }
 }

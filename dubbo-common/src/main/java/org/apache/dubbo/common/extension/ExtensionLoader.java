@@ -1016,11 +1016,16 @@ public class ExtensionLoader<T> {
 
             Adaptive adaptiveAnnotation = method.getAnnotation(Adaptive.class);
             StringBuilder code = new StringBuilder(512);
+
+
+            //- 没有Adaptive注解的方法
             if (adaptiveAnnotation == null) {
                 code.append("throw new UnsupportedOperationException(\"The method ")
                         .append(method.toString()).append(" of interface ")
                         .append(type.getName()).append(" is not adaptive method!\");");
             } else {
+
+                //- 验证方法参数是否包含url
                 int urlTypeIndex = -1;
                 for (int i = 0; i < pts.length; ++i) {
                     if (pts[i].equals(URL.class)) {
@@ -1078,6 +1083,7 @@ public class ExtensionLoader<T> {
 
                 String[] value = adaptiveAnnotation.value();
                 // value is not set, use the value generated from class name as the key
+                //- 如果Adaptive的value没有设置，那么则以接口累名小写作为value，来判定协议
                 if (value.length == 0) {
                     String splitName = StringUtils.camelToSplitName(type.getSimpleName(), ".");
                     value = new String[]{splitName};

@@ -37,6 +37,17 @@ public class ZookeeperRegistryFactory extends AbstractRegistryFactory {
         this.zookeeperTransporter = zookeeperTransporter;
     }
 
+
+
+
+    /**
+     *
+     * 创建registry
+     * @author Nero
+     * @date 2019-11-05
+     * *@param: url
+     * @return org.apache.dubbo.registry.Registry
+     */
     @Override
     public Registry createRegistry(URL url) {
         return new ZookeeperRegistry(url, zookeeperTransporter);

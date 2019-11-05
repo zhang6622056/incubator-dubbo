@@ -57,6 +57,18 @@ public class ZookeeperRegistry extends FailbackRegistry {
 
     private final ZookeeperClient zkClient;
 
+
+
+
+    /***
+     *
+     * 构造，用来生成zookeeper注册机链接
+     * @author Nero
+     * @date 2019-11-05
+     * @param: url
+     * @param: zookeeperTransporter
+     * @return
+     */
     public ZookeeperRegistry(URL url, ZookeeperTransporter zookeeperTransporter) {
         super(url);
         if (url.isAnyHost()) {
@@ -78,6 +90,12 @@ public class ZookeeperRegistry extends FailbackRegistry {
             }
         });
     }
+
+
+
+
+
+
 
     static String appendDefaultPort(String address) {
         if (address != null && address.length() > 0) {

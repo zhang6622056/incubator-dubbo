@@ -221,6 +221,19 @@ public abstract class FailbackRegistry extends AbstractRegistry {
         return failedNotified;
     }
 
+
+
+
+
+
+    /***
+     *
+     * 注册
+     * @author Nero
+     * @date 2019-11-05
+     * *@param: url
+     * @return void
+     */
     @Override
     public void register(URL url) {
         super.register(url);
@@ -250,6 +263,9 @@ public abstract class FailbackRegistry extends AbstractRegistry {
             addFailedRegistered(url);
         }
     }
+
+
+
 
     @Override
     public void unregister(URL url) {
@@ -364,6 +380,9 @@ public abstract class FailbackRegistry extends AbstractRegistry {
         super.notify(url, listener, urls);
     }
 
+
+
+
     @Override
     protected void recover() throws Exception {
         // register
@@ -390,6 +409,11 @@ public abstract class FailbackRegistry extends AbstractRegistry {
             }
         }
     }
+
+
+
+
+
 
     @Override
     public void destroy() {
