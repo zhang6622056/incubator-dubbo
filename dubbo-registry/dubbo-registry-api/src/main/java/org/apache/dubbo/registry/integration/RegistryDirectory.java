@@ -84,8 +84,14 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
     private final Map<String, String> queryMap; // Initialization at construction time, assertion not null
     private final URL directoryUrl; // Initialization at construction time, assertion not null, and always assign non null value
     private final boolean multiGroup;
-    private Protocol protocol; // Initialization at the time of injection, the assertion is not null
-    private Registry registry; // Initialization at the time of injection, the assertion is not null
+
+    // 通过注解注入Adaptive类
+    private Protocol protocol;
+    // 通过注解注入Adaptive类
+    private Registry registry;
+
+
+
     private volatile boolean forbidden = false;
 
     private volatile URL overrideDirectoryUrl; // Initialization at construction time, assertion not null, and always assign non null value
@@ -101,11 +107,17 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
     private volatile List<Configurator> configurators; // The initial value is null and the midway may be assigned to null, please use the local variable reference
 
     // Map<url, Invoker> cache service url to invoker mapping.
-    private volatile Map<String, Invoker<T>> urlInvokerMap; // The initial value is null and the midway may be assigned to null, please use the local variable reference
-    private volatile List<Invoker<T>> invokers;
+    //- 本地url缓存
+    // The initial value is null and the midway may be assigned to null, please use the local variable reference
+    public volatile Map<String, Invoker<T>> urlInvokerMap;
+    public volatile List<Invoker<T>> invokers;
+
+
 
     // Set<invokerUrls> cache invokeUrls to invokers mapping.
     private volatile Set<URL> cachedInvokerUrls; // The initial value is null and the midway may be assigned to null, please use the local variable reference
+
+
 
     private static final ConsumerConfigurationListener consumerConfigurationListener = new ConsumerConfigurationListener();
     private ReferenceConfigurationListener serviceConfigurationListener;
@@ -124,9 +136,15 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
         this.serviceKey = url.getServiceKey();
         this.queryMap = StringUtils.parseQueryString(url.getParameterAndDecoded(Constants.REFER_KEY));
         this.overrideDirectoryUrl = this.directoryUrl = turnRegistryUrlToConsumerUrl(url);
+
+        //- 控制访问服务group
         String group = directoryUrl.getParameter(Constants.GROUP_KEY, "");
         this.multiGroup = group != null && ("*".equals(group) || group.contains(","));
     }
+
+
+
+
 
     private URL turnRegistryUrlToConsumerUrl(URL url) {
         // save any parameter in registry that will be useful to the new url.
@@ -148,12 +166,29 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
         this.registry = registry;
     }
 
+
+
+
+    /***
+     *
+     * 订阅服务url
+     * @author Nero
+     * @date 2019-11-06
+     * *@param: url
+     * @return void
+     */
     public void subscribe(URL url) {
         setConsumerUrl(url);
+
+        //- 缓存一份listener
         consumerConfigurationListener.addNotifyListener(this);
         serviceConfigurationListener = new ReferenceConfigurationListener(this, url);
+
+
         registry.subscribe(url, this);
     }
+
+
 
 
     @Override
@@ -226,6 +261,7 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
      * @param invokerUrls this parameter can't be null
      */
     // TODO: 2017/8/31 FIXME The thread pool should be used to refresh the address, otherwise the task may be accumulated.
+    //- 服务监听，刷新本地invoker模型缓存
     private void refreshInvoker(List<URL> invokerUrls) {
         Assert.notNull(invokerUrls, "invokerUrls should not be null");
 
@@ -251,6 +287,8 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
             if (invokerUrls.isEmpty()) {
                 return;
             }
+
+            //- key = dubbo://172.17.61.71:20880/org.apache.dubbo.demo.DemoService?anyhost=true&application=dubbo-demo-api-consumer&check=false&dubbo=2.0.2&generic=false&group=&interface=org.apache.dubbo.demo.DemoService&methods=sayHello&pid=2710&register.ip=172.17.61.71&remote.application=dubbo-demo-api-provider&remote.timestamp=1573047844479&side=consumer&timestamp=1573047855180
             Map<String, Invoker<T>> newUrlInvokerMap = toInvokers(invokerUrls);// Translate url list to Invoker map
 
             /**
@@ -460,6 +498,8 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
         return providerUrl;
     }
 
+
+
     private URL overrideWithConfigurators(List<Configurator> configurators, URL url) {
         if (CollectionUtils.isNotEmpty(configurators)) {
             for (Configurator configurator : configurators) {
@@ -469,8 +509,16 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
         return url;
     }
 
-    /**
-     * Close all invokers
+
+
+
+    /***
+     *
+     * 销毁所有的本地invoker模型
+     * @author Nero
+     * @date 2019-11-06
+     * *@param:
+     * @return void
      */
     private void destroyAllInvokers() {
         Map<String, Invoker<T>> localUrlInvokerMap = this.urlInvokerMap; // local reference
@@ -493,6 +541,15 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
      *
      * @param oldUrlInvokerMap
      * @param newUrlInvokerMap
+     */
+    /***
+     *
+     * 销毁invoker
+     * @author Nero
+     * @date 2019-11-06
+     * *@param: oldUrlInvokerMap
+     *@param: newUrlInvokerMap
+     * @return void
      */
     private void destroyUnusedInvokers(Map<String, Invoker<T>> oldUrlInvokerMap, Map<String, Invoker<T>> newUrlInvokerMap) {
         if (newUrlInvokerMap == null || newUrlInvokerMap.size() == 0) {
@@ -532,16 +589,27 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
         }
     }
 
+
+
+    /****
+     *
+     * 列举invoker列表,查看可用的服务列表
+     * @author Nero
+     * @date 2019-11-06
+     * *@param: invocation
+     * @return java.util.List<org.apache.dubbo.rpc.Invoker<T>>
+     */
     @Override
     public List<Invoker<T>> doList(Invocation invocation) {
         if (forbidden) {
-            // 1. No service provider 2. Service providers are disabled
+            // 服务提供者关闭或禁用了服务，此时抛出 No provider 异常
             throw new RpcException(RpcException.FORBIDDEN_EXCEPTION, "No provider available from registry " +
                     getUrl().getAddress() + " for service " + getConsumerUrl().getServiceKey() + " on consumer " +
                     NetUtils.getLocalHost() + " use dubbo version " + Version.getVersion() +
                     ", please check status of providers(disabled, not registered or in blacklist).");
         }
 
+        //- 多个group
         if (multiGroup) {
             return this.invokers == null ? Collections.emptyList() : this.invokers;
         }
@@ -678,6 +746,14 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
         }
     }
 
+
+
+
+
+
+
+
+    //- 刷新可用的服务invokers
     private static class ReferenceConfigurationListener extends AbstractConfiguratorListener {
         private RegistryDirectory directory;
         private URL url;
@@ -695,6 +771,10 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
         }
     }
 
+
+
+
+
     private static class ConsumerConfigurationListener extends AbstractConfiguratorListener {
         List<RegistryDirectory> listeners = new ArrayList<>();
 
@@ -711,5 +791,9 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
             listeners.forEach(listener -> listener.refreshInvoker(Collections.emptyList()));
         }
     }
+
+
+
+
 
 }

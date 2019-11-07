@@ -81,6 +81,8 @@ public class ZookeeperRegistry extends FailbackRegistry {
         this.root = group;
         zkClient = zookeeperTransporter.connect(url);
         zkClient.addStateListener(state -> {
+
+            //- 重连成功
             if (state == StateListener.RECONNECTED) {
                 try {
                     recover();
@@ -124,6 +126,16 @@ public class ZookeeperRegistry extends FailbackRegistry {
         }
     }
 
+
+
+    /***
+     *
+     * 注册
+     * @author Nero
+     * @date 2019-11-06
+     * *@param: url
+     * @return void
+     */
     @Override
     public void doRegister(URL url) {
         try {
@@ -143,6 +155,17 @@ public class ZookeeperRegistry extends FailbackRegistry {
         }
     }
 
+
+
+    /***
+     *
+     * 订阅
+     * @author Nero
+     * @date 2019-11-06
+     * *@param: url
+    *@param: listener
+     * @return void
+     */
     @Override
     public void doSubscribe(final URL url, final NotifyListener listener) {
         try {

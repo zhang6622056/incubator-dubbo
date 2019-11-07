@@ -50,6 +50,21 @@ public class FailoverClusterInvoker<T> extends AbstractClusterInvoker<T> {
         super(directory);
     }
 
+
+
+
+
+
+    /***
+     *
+     * 最终调用
+     * @author Nero
+     * @date 2019-11-07
+     * *@param: invocation
+    *@param: invokers
+    *@param: loadbalance
+     * @return org.apache.dubbo.rpc.Result
+     */
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
     public Result doInvoke(Invocation invocation, final List<Invoker<T>> invokers, LoadBalance loadbalance) throws RpcException {
@@ -60,6 +75,9 @@ public class FailoverClusterInvoker<T> extends AbstractClusterInvoker<T> {
         if (len <= 0) {
             len = 1;
         }
+
+
+        //- 重试机制
         // retry loop.
         RpcException le = null; // last exception.
         List<Invoker<T>> invoked = new ArrayList<Invoker<T>>(copyInvokers.size()); // invoked invokers.

@@ -150,6 +150,8 @@ public abstract class AbstractClusterInvoker<T> implements Invoker<T> {
         if (invokers.size() == 1) {
             return invokers.get(0);
         }
+
+        //- 负载均衡，筛选服务
         Invoker<T> invoker = loadbalance.select(invokers, getUrl(), invocation);
 
         //If the `invoker` is in the  `selected` or invoker is unavailable && availablecheck is true, reselect.
@@ -226,6 +228,16 @@ public abstract class AbstractClusterInvoker<T> implements Invoker<T> {
         return null;
     }
 
+
+
+    /***
+     *
+     * reference底层调用
+     * @author Nero
+     * @date 2019-11-07
+     * *@param: invocation
+     * @return org.apache.dubbo.rpc.Result
+     */
     @Override
     public Result invoke(final Invocation invocation) throws RpcException {
         checkWhetherDestroyed();
@@ -236,9 +248,17 @@ public abstract class AbstractClusterInvoker<T> implements Invoker<T> {
             ((RpcInvocation) invocation).addAttachments(contextAttachments);
         }
 
+
+        //-获取可调用的invokers对象
         List<Invoker<T>> invokers = list(invocation);
+
+        //- 加载负载抽象模型
         LoadBalance loadbalance = initLoadBalance(invokers, invocation);
+
+        //TODO
         RpcUtils.attachInvocationIdIfAsync(getUrl(), invocation);
+
+
         return doInvoke(invocation, invokers, loadbalance);
     }
 

@@ -401,6 +401,7 @@ public class RegistryProtocol implements Protocol {
 
 
         // 注册服务消费者，在 consumers 目录下新节点，zk上传consumers节点
+        //- 连接服务器最终会代理给registry相关的实现，比如zookeeperregistry内部的client的抽象
         Map<String, String> parameters = new HashMap<String, String>(directory.getUrl().getParameters());
         URL subscribeUrl = new URL(CONSUMER_PROTOCOL, parameters.remove(REGISTER_IP_KEY), 0, type.getName(), parameters);
         if (!ANY_VALUE.equals(url.getServiceInterface()) && url.getParameter(REGISTER_KEY, true)) {
@@ -416,7 +417,8 @@ public class RegistryProtocol implements Protocol {
                 PROVIDERS_CATEGORY + "," + CONFIGURATORS_CATEGORY + "," + ROUTERS_CATEGORY));
 
 
-        //构建调用invoker
+        //构建调用invoker，默认 FailoverClusterInvoker
+        //- 一个注册中心可能有多个服务提供者，因此这里需要将多个服务提供者合并为一个
         Invoker invoker = cluster.join(directory);
         ProviderConsumerRegTable.registerConsumer(invoker, url, subscribeUrl, directory);
         return invoker;

@@ -6,6 +6,7 @@ import org.apache.dubbo.rpc.Protocol;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
 
 public class AdaptiveTest {
 
@@ -31,11 +32,37 @@ public class AdaptiveTest {
                 }
             }
         }
+    }
 
 
+
+
+
+
+
+    @Test
+    public void test01(){
+
+        HashMap hashMap = new HashMap(5);
+        hashMap.put("1",1);
+        hashMap.put("2",2);
+        hashMap.put("3",3);
+        hashMap.put("4",4);
+        hashMap.put("5",5);
+
+
+
+        int n = 10000;
+
+
+        n |= n >>> 1;
+        System.out.println(n);
 
 
     }
+
+
+
 
 
 }

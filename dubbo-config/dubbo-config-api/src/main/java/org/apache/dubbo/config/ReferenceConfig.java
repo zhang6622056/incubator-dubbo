@@ -471,6 +471,7 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
             metadataReportService.publishConsumer(consumerURL);
         }
         // create service proxy
+        //- 如果不指定，默认为JavassistProxyFactory
         return (T) proxyFactory.getProxy(invoker);
     }
 

@@ -56,6 +56,10 @@ public class CuratorZookeeperClient extends AbstractZookeeperClient<CuratorWatch
                 builder = builder.authorization("digest", authority.getBytes());
             }
             client = builder.build();
+
+
+
+            //- 连接状态监听器
             client.getConnectionStateListenable().addListener(new ConnectionStateListener() {
                 @Override
                 public void stateChanged(CuratorFramework client, ConnectionState state) {
@@ -74,6 +78,17 @@ public class CuratorZookeeperClient extends AbstractZookeeperClient<CuratorWatch
         }
     }
 
+
+
+
+    /**
+     *
+     * 创建永久节点
+     * @author Nero
+     * @date 2019-11-06
+     * *@param: path
+     * @return void
+     */
     @Override
     public void createPersistent(String path) {
         try {
@@ -84,6 +99,16 @@ public class CuratorZookeeperClient extends AbstractZookeeperClient<CuratorWatch
         }
     }
 
+
+
+    /***
+     *
+     * 创建临时节点
+     * @author Nero
+     * @date 2019-11-06
+     * *@param: path
+     * @return void
+     */
     @Override
     public void createEphemeral(String path) {
         try {
@@ -93,6 +118,10 @@ public class CuratorZookeeperClient extends AbstractZookeeperClient<CuratorWatch
             throw new IllegalStateException(e.getMessage(), e);
         }
     }
+
+
+
+
 
     @Override
     protected void createPersistent(String path, String data) {
