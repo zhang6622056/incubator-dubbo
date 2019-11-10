@@ -93,7 +93,10 @@ import static org.apache.dubbo.common.utils.UrlUtils.classifyUrls;
 public class RegistryProtocol implements Protocol {
 
     private final static Logger logger = LoggerFactory.getLogger(RegistryProtocol.class);
+    //- 静态单例模式
     private static RegistryProtocol INSTANCE;
+
+
     private final Map<URL, NotifyListener> overrideListeners = new ConcurrentHashMap<>();
     private final Map<String, ServiceConfigurationListener> serviceConfigurationListeners = new ConcurrentHashMap<>();
     private final ProviderConfigurationListener providerConfigurationListener = new ProviderConfigurationListener();
@@ -108,6 +111,8 @@ public class RegistryProtocol implements Protocol {
     public RegistryProtocol() {
         INSTANCE = this;
     }
+
+
 
     public static RegistryProtocol getRegistryProtocol() {
         if (INSTANCE == null) {
