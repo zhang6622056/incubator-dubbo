@@ -124,6 +124,9 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
 
 
 
+
+
+
     public RegistryDirectory(Class<T> serviceType, URL url) {
         super(url);
         if (serviceType == null) {
@@ -223,6 +226,18 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
         }
     }
 
+
+
+
+
+    /***
+     *
+     * 通知本地invokers刷新
+     * @author Nero
+     * @date 2019-11-10
+     * *@param: urls   单次刷新后的最新url列表
+     * @return void
+     */
     @Override
     public synchronized void notify(List<URL> urls) {
         List<URL> categoryUrls = urls.stream()
@@ -242,6 +257,10 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
         refreshOverrideAndInvoker(classifyUrls(categoryUrls, UrlUtils::isProvider));
     }
 
+
+
+
+    //- 通知本地invokers刷新
     private void refreshOverrideAndInvoker(List<URL> urls) {
         // mock zookeeper://xxx?mock=return null
         overrideDirectoryUrl();

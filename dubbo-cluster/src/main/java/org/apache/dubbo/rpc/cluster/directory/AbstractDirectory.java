@@ -73,6 +73,17 @@ public abstract class AbstractDirectory<T> implements Directory<T> {
         setRouterChain(routerChain);
     }
 
+
+
+
+    /***
+     *
+     * 获取可用的invokers对象
+     * @author Nero
+     * @date 2019-11-10
+     * *@param: invocation
+     * @return java.util.List<org.apache.dubbo.rpc.Invoker<T>>
+     */
     @Override
     public List<Invoker<T>> list(Invocation invocation) throws RpcException {
         if (destroyed) {
@@ -117,6 +128,16 @@ public abstract class AbstractDirectory<T> implements Directory<T> {
         destroyed = true;
     }
 
+
+
+    /***
+     *
+     * 通过子类实现，子类又委派给了RouterChain
+     * @author Nero
+     * @date 2019-11-10
+     * *@param: invocation
+     * @return java.util.List<org.apache.dubbo.rpc.Invoker<T>>
+     */
     protected abstract List<Invoker<T>> doList(Invocation invocation) throws RpcException;
 
 }

@@ -38,6 +38,9 @@ public class ApplicationProvider {
         ProtocolConfig protocolConfig  =new ProtocolConfig();
         protocolConfig.setPort(10082);
 
+
+
+
         service.setProtocol(protocolConfig);
         //- 设置接口
         service.setInterface(DemoService.class);
