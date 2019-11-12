@@ -75,26 +75,10 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
     private static final long serialVersionUID = 3033787999037024738L;
 
-    /**
-     * The {@link Protocol} implementation with adaptive functionality,it will be different in different scenarios.
-     * A particular {@link Protocol} implementation is determined by the protocol attribute in the {@link URL}.
-     * For example:
-     *
-     * <li>when the url is registry://224.5.6.7:1234/org.apache.dubbo.registry.RegistryService?application=dubbo-sample,
-     * then the protocol is <b>RegistryProtocol</b></li>
-     *
-     * <li>when the url is dubbo://224.5.6.7:1234/org.apache.dubbo.config.api.DemoService?application=dubbo-sample, then
-     * the protocol is <b>DubboProtocol</b></li>
-     * <p>
-     * Actually，when the {@link ExtensionLoader} init the {@link Protocol} instants,it will automatically wraps two
-     * layers, and eventually will get a <b>ProtocolFilterWrapper</b> or <b>ProtocolListenerWrapper</b>
-     */
+    //- 默认协议，dubbo
     private static final Protocol protocol = ExtensionLoader.getExtensionLoader(Protocol.class).getAdaptiveExtension();
 
-    /**
-     * A {@link ProxyFactory} implementation that will generate a exported service proxy,the JavassistProxyFactory is its
-     * default implementation
-     */
+    //- 代理方式  stub、jdk、javassist 默认javassist
     private static final ProxyFactory proxyFactory = ExtensionLoader.getExtensionLoader(ProxyFactory.class).getAdaptiveExtension();
 
     /**
@@ -128,7 +112,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     private Class<?> interfaceClass;
 
     /**
-     * The reference of the interface implementation
+     * 接口的真实实现类
      */
     private T ref;
 
@@ -262,11 +246,12 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     }
 
     public void checkAndUpdateSubConfigs() {
-        //按照优先级设置配置属性 provider > module > config
+        //- 本地静态配置 ，按照优先级设置配置属性 provider > module > config
         completeCompoundConfigs();
-
-
+        //- 应用配置中心的配置，这是一个覆盖操作，所以优先级比上面的高，应用配置到ConfigManager
         startConfigCenter();
+
+
         checkDefault();
         checkApplication();
         checkRegistry();
@@ -809,7 +794,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         return port;
     }
 
-    //- 按照优先级设置属性  provider > module > application
+    //- 在registies和monitor上优先级  provider > module > application
     private void completeCompoundConfigs() {
         if (provider != null) {
             if (application == null) {

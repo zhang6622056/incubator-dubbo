@@ -19,6 +19,7 @@
 package org.apache.dubbo.demo.provider;
 
 import org.apache.dubbo.config.ApplicationConfig;
+import org.apache.dubbo.config.ConfigCenterConfig;
 import org.apache.dubbo.config.RegistryConfig;
 import org.apache.dubbo.config.ServiceConfig;
 import org.apache.dubbo.demo.DemoService;
@@ -36,6 +37,17 @@ public class Application {
         service.setRegistry(new RegistryConfig("zookeeper://127.0.0.1:2181"));
         //- 设置接口
         service.setInterface(DemoService.class);
+
+
+
+
+
+
+
+
+
+
+
         //- 设置实现类实例
         service.setRef(new DemoServiceImpl());
         service.export();

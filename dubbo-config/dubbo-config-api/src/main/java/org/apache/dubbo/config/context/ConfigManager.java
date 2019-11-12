@@ -71,6 +71,16 @@ import static org.apache.dubbo.common.Constants.DEFAULT_KEY;
  * Maybe we can remove the property definition in ReferenceConfig/ServiceConfig and only keep the setXxxConfig() as an entrance.
  * All workflow internally can rely on ConfigManager.
  */
+
+
+/***
+ *
+ * 每个应用都会维护一个单例的ConfigManager实例，用来保存优先级计算之后的配置信息
+ * @author Nero
+ * @date 2019-11-12
+ * *@param: null
+ * @return 
+ */
 public class ConfigManager {
     private static final Logger logger = LoggerFactory.getLogger(ConfigManager.class);
     private static final ConfigManager configManager = new ConfigManager();

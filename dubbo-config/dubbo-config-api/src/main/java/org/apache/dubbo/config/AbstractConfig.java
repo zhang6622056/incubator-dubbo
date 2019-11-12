@@ -535,12 +535,18 @@ public abstract class AbstractConfig implements Serializable {
         this.prefix = prefix;
     }
 
-    //- 通过覆盖操作进行优先级配置
+    //- 通过覆盖操作进行优先级配置，将值设置到对应的配置类中
+    //- System -> AppExternal --> ExteralConfig ---> PropertiesConfig
     public void refresh() {
         try {
+
+            //- 优先级按照CompositeConfiguration 内部维护的linkedList add顺序排列 getConfiguration方法
             CompositeConfiguration compositeConfiguration = Environment.getInstance().getConfiguration(getPrefix(), getId());
             InmemoryConfiguration config = new InmemoryConfiguration(getPrefix(), getId());
             config.addProperties(getMetaData());
+
+
+            //- 按照配置中心优先策略调整配置优先级
             if (Environment.getInstance().isConfigCenterFirst()) {
                 // The sequence would be: SystemConfiguration -> ExternalConfiguration -> AppExternalConfiguration -> AbstractConfig -> PropertiesConfiguration
                 compositeConfiguration.addConfiguration(3, config);
@@ -549,7 +555,7 @@ public abstract class AbstractConfig implements Serializable {
                 compositeConfiguration.addConfiguration(1, config);
             }
 
-            // loop methods, get override value and set the new value back to method
+            // 通过反射，设置值，按照配置的优先级
             Method[] methods = getClass().getMethods();
             for (Method method : methods) {
                 if (ClassHelper.isSetter(method)) {

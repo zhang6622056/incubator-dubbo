@@ -16,6 +16,7 @@
  */
 package org.apache.dubbo.remoting.transport;
 
+import com.alibaba.fastjson.JSON;
 import org.apache.dubbo.common.Constants;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.remoting.Channel;
@@ -50,6 +51,15 @@ public abstract class AbstractPeer implements Endpoint, ChannelHandler {
 
     @Override
     public void send(Object message) throws RemotingException {
+        System.out.println(JSON.toJSONString(message));
+        try{
+            throw new RuntimeException();
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+
+
+
         send(message, url.getParameter(Constants.SENT_KEY, false));
     }
 

@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- *
+ * 注册中心配置
  */
 public class ConfigCenterConfig extends AbstractConfig {
     private AtomicBoolean inited = new AtomicBoolean(false);
