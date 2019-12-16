@@ -104,6 +104,17 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
         return service;
     }
 
+
+
+    /***
+     *
+     * 通过实现ApplicationListener接口，实现onApplicationEvent.方法。
+     * 监听ContextRefreshedEvent事件，调用export方法。将dubbo服务导出
+     * @author Nero
+     * @date 2019-12-16
+     * *@param: event
+     * @return void
+     */
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
         if (!isExported() && !isUnexported()) {

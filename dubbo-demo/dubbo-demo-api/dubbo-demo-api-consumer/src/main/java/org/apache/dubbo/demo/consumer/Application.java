@@ -37,20 +37,15 @@ public class Application {
 
 
             ReferenceConfig<DemoService> reference = new ReferenceConfig<>();
-            //- 设置应用名
             reference.setApplication(new ApplicationConfig("dubbo-demo-api-consumer"));
-            //- 设置注册中心地址
             reference.setRegistry(new RegistryConfig("zookeeper://127.0.0.1:2181"));
-            //- 设置调用的接口
             reference.setInterface(DemoService.class);
 
 
             //- 重试
             reference.setRetries(3);
-
-
-
-
+            reference.setTimeout(10000);
+            //reference.setMock(true);
             DemoService service = reference.get();
 
 
@@ -58,9 +53,6 @@ public class Application {
             while(true){
                 System.out.println(service.getClass().getName());
                 System.out.println("$Proxy0.class全名: "+ Proxy.getProxyClass(DemoService.class.getClassLoader(), DemoService.class));
-
-
-
                 String message = service.sayHello("dubbo");
                 System.out.println(message);
                 Thread.sleep(3000);

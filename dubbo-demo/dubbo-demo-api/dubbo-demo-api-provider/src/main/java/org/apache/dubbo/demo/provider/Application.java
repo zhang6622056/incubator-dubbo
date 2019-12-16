@@ -37,20 +37,18 @@ public class Application {
         service.setRegistry(new RegistryConfig("zookeeper://127.0.0.1:2181"));
         //- 设置接口
         service.setInterface(DemoService.class);
-
-
-
-
-
-
-
-
-
-
-
-        //- 设置实现类实例
-        service.setRef(new DemoServiceImpl());
-        service.export();
+        service.setTimeout(3000);
         System.in.read();
+
+
+
+        while(true){
+            //- 设置实现类实例
+            service.setRef(new DemoServiceImpl());
+            service.export();
+
+            System.in.read();
+
+        }
     }
 }
