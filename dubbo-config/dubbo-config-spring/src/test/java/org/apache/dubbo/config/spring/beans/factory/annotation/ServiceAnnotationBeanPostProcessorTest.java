@@ -17,6 +17,7 @@
 package org.apache.dubbo.config.spring.beans.factory.annotation;
 
 import org.apache.dubbo.config.spring.ServiceBean;
+import org.apache.dubbo.config.spring.api.DemoService;
 import org.apache.dubbo.config.spring.api.HelloService;
 
 import org.junit.Assert;
@@ -65,9 +66,17 @@ public class ServiceAnnotationBeanPostProcessorTest {
 
         Assert.assertEquals(2, helloServicesMap.size());
 
+        Map<String, DemoService> demoServiceMap = beanFactory.getBeansOfType(DemoService.class);
+
         Map<String, ServiceBean> serviceBeansMap = beanFactory.getBeansOfType(ServiceBean.class);
 
         Assert.assertEquals(2, serviceBeansMap.size());
+
+
+
+
+
+
 
         Map<String, ServiceAnnotationBeanPostProcessor> beanPostProcessorsMap =
                 beanFactory.getBeansOfType(ServiceAnnotationBeanPostProcessor.class);

@@ -38,8 +38,6 @@ public class Application {
         //- 设置接口
         service.setInterface(DemoService.class);
         service.setTimeout(3000);
-        System.in.read();
-
 
 
         while(true){

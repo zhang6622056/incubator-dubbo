@@ -111,11 +111,14 @@ public class ServiceAnnotationBeanPostProcessor implements BeanDefinitionRegistr
     }
 
 
-    /**
-     * Registers Beans whose classes was annotated {@link Service}
+    /***
      *
-     * @param packagesToScan The base packages to scan
-     * @param registry       {@link BeanDefinitionRegistry}
+     * 注册扫描包下的bean
+     * @author Nero
+     * @date 2019-12-18
+     * @param: packagesToScan  扫描包下的bean
+     * @param: registry   spring提供的注册器
+     * @return void
      */
     private void registerServiceBeans(Set<String> packagesToScan, BeanDefinitionRegistry registry) {
 
@@ -130,10 +133,10 @@ public class ServiceAnnotationBeanPostProcessor implements BeanDefinitionRegistr
 
         for (String packageToScan : packagesToScan) {
 
-            // Registers @Service Bean first
+            // 注册spring业务bean
             scanner.scan(packageToScan);
 
-            // Finds all BeanDefinitionHolders of @Service whether @ComponentScan scans or not.
+            //- 注册dubbo的ServiceBean
             Set<BeanDefinitionHolder> beanDefinitionHolders =
                     findServiceBeanDefinitionHolders(scanner, packageToScan, registry, beanNameGenerator);
 
@@ -232,14 +235,15 @@ public class ServiceAnnotationBeanPostProcessor implements BeanDefinitionRegistr
 
     }
 
-    /**
-     * Registers {@link ServiceBean} from new annotated {@link Service} {@link BeanDefinition}
+    /***
      *
-     * @param beanDefinitionHolder
-     * @param registry
-     * @param scanner
-     * @see ServiceBean
-     * @see BeanDefinition
+     * 功能描述 
+     * @author Nero
+     * @date 2019-12-18
+     * @param: beanDefinitionHolder
+     * @param: registry  spring提供的注册器，注册bean
+     * @param: scanner   扫描组件
+     * @return void
      */
     private void registerServiceBean(BeanDefinitionHolder beanDefinitionHolder, BeanDefinitionRegistry registry,
                                      DubboClassPathBeanDefinitionScanner scanner) {

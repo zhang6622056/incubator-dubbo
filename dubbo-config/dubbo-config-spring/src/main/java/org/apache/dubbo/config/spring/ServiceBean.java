@@ -125,6 +125,18 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
         }
     }
 
+
+
+
+    /***
+     *
+     * InitializingBean
+     * 加载配置
+     * @author Nero
+     * @date 2019-12-18
+     * *@param:
+     * @return void
+     */
     @Override
     @SuppressWarnings({"unchecked", "deprecation"})
     public void afterPropertiesSet() throws Exception {
