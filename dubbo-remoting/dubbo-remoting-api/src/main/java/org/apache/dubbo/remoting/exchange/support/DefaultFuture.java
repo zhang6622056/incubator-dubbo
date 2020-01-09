@@ -174,7 +174,11 @@ public class DefaultFuture implements ResponseFuture {
             lock.lock();
             try {
                 while (!isDone()) {
+                    //- 没有返回结果，请求阻塞在条件变量上，
                     done.await(timeout, TimeUnit.MILLISECONDS);
+
+                    //- 如果有结果返回或者超时，则break退出循环，
+                    //- 这里用while 循环是为了放置其他线程通知该线程的条件等待队列
                     if (isDone() || System.currentTimeMillis() - start > timeout) {
                         break;
                     }
