@@ -43,7 +43,8 @@ import java.util.stream.Collectors;
 
 /**
  * Utility methods and public methods for parsing configuration
- *
+ * 用于解析配置的实用程序方法和公共方法
+ * 模板方法类
  * @export
  */
 public abstract class AbstractConfig implements Serializable {

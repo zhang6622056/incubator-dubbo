@@ -152,6 +152,11 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
     // the scope for referring/exporting a service, if it's local, it means searching in current JVM only.
     private String scope;
 
+
+
+
+
+
     /**
      * Check whether the registry config is exists, and then conversion it to {@link RegistryConfig}
      */
@@ -236,7 +241,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
         }
     }
 
-
+    //- 使用外部配置，比如apollo之类的
     void startConfigCenter() {
         if (configCenter == null) {
             //-Optional操作, 判定如果ConfigManager中的config center有值，则赋值过来
@@ -250,6 +255,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
             this.configCenter.refresh();
             prepareEnvironment();
         }
+
         ConfigManager.getInstance().refreshAll();
     }
 

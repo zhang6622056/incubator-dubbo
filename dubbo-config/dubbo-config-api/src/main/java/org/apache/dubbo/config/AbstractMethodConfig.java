@@ -33,36 +33,44 @@ public abstract class AbstractMethodConfig extends AbstractConfig {
 
     /**
      * The timeout for remote invocation in milliseconds
+     *
      */
     protected Integer timeout;
 
     /**
+     * 调用重试次数
      * The retry times
      */
     protected Integer retries;
 
     /**
+     * 最高并发调用的请求数
      * max concurrent invocations
      */
     protected Integer actives;
 
     /**
+     * 负载均衡策略
      * The load balance
      */
     protected String loadbalance;
 
     /**
+     * 是否开启异步调用，指reference配置，异步调用不关心返回值，但是异步调用并不可靠
      * Whether to async
      * note that: it is an unreliable asynchronism that ignores return values and does not block threads.
      */
     protected Boolean async;
 
     /**
+     * 异步调用情况下，是否开启调用确认 TODO-ZL 需要验证实现
      * Whether to ack async-sent
      */
     protected Boolean sent;
 
     /**
+     * 如果打开为true，则查找接口名+Mock的实现，作为备用实现
+     *
      * The name of mock class which gets called when a service fails to execute
      *
      * note that: the mock doesn't support on the provider side，and the mock is executed when a non-business exception
@@ -72,18 +80,23 @@ public abstract class AbstractMethodConfig extends AbstractConfig {
 
     /**
      * Merger
+     * 用于分组聚合，搭配group使用
+     * http://dubbo.apache.org/zh-cn/docs/user/demos/group-merger.html
      */
     protected String merger;
 
     /**
      * Cache the return result with the call parameter as key, the following options are available: lru, threadlocal,
      * jcache, etc.
+     * 本地缓存，需要考虑分布式一致性问题
+     * 以调用参数为key，缓存返回结果，可选：lru, threadlocal, jcache等
      */
     protected String cache;
 
     /**
      * Whether JSR303 standard annotation validation is enabled or not, if enabled, annotations on method parameters will
      * be validated
+     * TODO-ZL 待理解
      */
     protected String validation;
 
@@ -94,8 +107,14 @@ public abstract class AbstractMethodConfig extends AbstractConfig {
 
     /**
      * Forks for forking cluster
+     * TODO-ZL 待理解
      */
     protected Integer forks;
+
+
+
+
+
 
     public Integer getForks() {
         return forks;

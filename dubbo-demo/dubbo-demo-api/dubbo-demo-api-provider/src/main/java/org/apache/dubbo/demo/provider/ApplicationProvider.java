@@ -32,21 +32,27 @@ public class ApplicationProvider {
     public static void main(String[] args) throws Exception {
         ServiceConfig<DemoServiceImpl> service = new ServiceConfig<>();
         service.setApplication(new ApplicationConfig("dubbo-demo-api-provider"));
-
         //- 设置暴露的注册中心
         service.setRegistry(new RegistryConfig("zookeeper://127.0.0.1:2181"));
         ProtocolConfig protocolConfig  =new ProtocolConfig();
         protocolConfig.setPort(10082);
-
-
-
-
         service.setProtocol(protocolConfig);
         //- 设置接口
         service.setInterface(DemoService.class);
         //- 设置实现类实例
         service.setRef(new DemoServiceImpl());
-        service.export();
+        service.setGeneric("true");
+
+
+
+
+
+
+
+
+
+
         System.in.read();
+        service.export();
     }
 }

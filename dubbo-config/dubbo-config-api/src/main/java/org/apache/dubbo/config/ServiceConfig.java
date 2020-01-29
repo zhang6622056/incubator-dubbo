@@ -248,8 +248,10 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     public void checkAndUpdateSubConfigs() {
         //- 本地静态配置 ，按照优先级设置配置属性 provider > module > config
         completeCompoundConfigs();
-        //- 应用配置中心的配置，这是一个覆盖操作，所以优先级比上面的高，应用配置到ConfigManager
+
+        //- 使用外部配置，比如apollo之类的
         startConfigCenter();
+
 
 
         checkDefault();
@@ -796,6 +798,9 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
     //- 在registies和monitor上优先级  provider > module > application
     private void completeCompoundConfigs() {
+
+
+        //- 使用ProviderConfig
         if (provider != null) {
             if (application == null) {
                 setApplication(provider.getApplication());
@@ -816,6 +821,9 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                 setConfigCenter(provider.getConfigCenter());
             }
         }
+
+
+
         if (module != null) {
             if (registries == null) {
                 setRegistries(module.getRegistries());
@@ -824,6 +832,8 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                 setMonitor(module.getMonitor());
             }
         }
+
+
         if (application != null) {
             if (registries == null) {
                 setRegistries(application.getRegistries());
@@ -832,6 +842,9 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                 setMonitor(application.getMonitor());
             }
         }
+
+
+
     }
 
     private void checkDefault() {
